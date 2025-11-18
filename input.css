@@ -1,0 +1,46 @@
+/* input.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Seus estilos personalizados extras */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.active-tab {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-editar,
+.btn-excluir {
+  padding: 0.5rem;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 0.25rem;
+}
+
+@media (max-height: 600px) {
+  .fixed.inset-0.z-50 {
+    align-items: flex-start;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+}
+
+#despesas-cards .bg-white {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#despesas-cards .border {
+  border-width: 1px;
+}
+
+#despesas-cards .p-3 {
+  padding: 0.75rem;
+}
+
+#despesas-cards .shadow-sm {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
