@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle Familiar</title>
+
+  <!-- Fonte Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              "50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd",
+              "400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8",
+              "800":"#1e40af","900":"#1e3a8a","950":"#172554"
+            }
+          }
+        },
+        fontFamily: {
+          body: ['Inter', 'system-ui', 'sans-serif'],
+          sans: ['Inter', 'system-ui', 'sans-serif']
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="./css/style.css"> <!-- Caminho ajustado para a estrutura do repositório frontend -->
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 font-sans">
+
+  <!-- Cabeçalho -->
+  <header class="bg-primary-700 text-white py-4 shadow-md">
+    <div class="container mx-auto px-4">
+      <h1 class="text-xl md:text-2xl font-bold flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Controle Familiar
+      </h1>
+    </div>
+  </header>
+
+  <!-- Abas -->
+  <nav class="container mx-auto px-4 mt-3 hidden" id="nav-tabs"> <!-- Inicialmente escondido -->
+    <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="tabs">
+      <li class="mr-1 md:mr-2">
+        <a href="#" class="tab-link inline-block p-3 md:p-4 border-b-2 rounded-t-lg active-tab text-primary-600 border-primary-600" data-tab="despesas">Despesas</a>
+      </li>
+      <li class="mr-1 md:mr-2">
+        <a href="#" class="tab-link inline-block p-3 md:p-4 border-b-2 rounded-t-lg" data-tab="rendas">Rendas</a>
+      </li>
+      <li class="mr-1 md:mr-2">
+        <a href="#" class="tab-link inline-block p-3 md:p-4 border-b-2 rounded-t-lg" data-tab="colaboradores">Colaboradores</a>
+      </li>
+      <li class="mr-1 md:mr-2">
+        <a href="#" class="tab-link inline-block p-3 md:p-4 border-b-2 rounded-t-lg" data-tab="resumo">Resumo</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="container mx-auto px-4 py-4 sm:py-6">
+
+    <!-- Despesas -->
+    <section id="despesas" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-800 relative shadow-md rounded-lg overflow-hidden">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+          <div class="w-full md:w-1/2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mês</label>
+            <input type="month" id="despesas-mes" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+          </div>
+          <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3">
+            <button type="button" data-modal-toggle="despesaModal" class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2 md:px-4 md:py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700">
+              <svg class="h-3.5 w-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+              Nova Despesa
+            </button>
+          </div>
+        </div>
+
+        <!-- TABELA PARA DESKTOP -->
+        <div class="hidden md:block overflow-x-auto px-2">
+          <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" class="px-2 py-3">Data</th>
+                <th scope="col" class="px-2 py-3">Descrição</th>
+                <th scope="col" class="px-2 py-3">Cat.</th>
+                <th scope="col" class="px-2 py-3">Valor</th>
+                <th scope="col" class="px-2 py-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="despesas-tbody-desktop">
+              <tr><td colspan="5" class="px-4 py-3 text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- CARDS PARA MOBILE -->
+        <div id="despesas-cards" class="md:hidden space-y-3 p-4">
+          <p class="text-center text-gray-500">Carregando...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rendas -->
+    <section id="rendas" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+          <div class="w-full md:w-1/2">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mês</label>
+            <input type="month" id="rendas-mes" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+          </div>
+          <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+            <button type="button" data-modal-toggle="rendaModal" class="flex items-center justify-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-green-600 dark:hover:bg-green-700">
+              <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+              Registrar Renda
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" class="px-4 py-3">Colaborador</th>
+                <th scope="col" class="px-4 py-3">Mês/Ano</th>
+                <th scope="col" class="px-4 py-3">Valor</th>
+                <th scope="col" class="px-4 py-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="rendas-tbody">
+              <tr><td colspan="4" class="px-4 py-3 text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Colaboradores -->
+    <section id="colaboradores" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+          <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+            <button type="button" data-modal-toggle="colabModal" class="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700">
+              <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+              Novo Colaborador
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" class="px-4 py-3">Nome</th>
+                <th scope="col" class="px-4 py-3">Dia Fechamento</th>
+                <th scope="col" class="px-4 py-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="colabs-tbody">
+              <tr><td colspan="3" class="px-4 py-3 text-center">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumo -->
+    <section id="resumo" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Resumo Mensal</h2>
+        <div class="mb-4">
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Selecione o mês</label>
+          <input type="month" id="resumo-mes" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+        </div>
+        <button id="btn-carregar-resumo" class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5">
+          Carregar Resumo
+        </button>
+        <div id="resumo-content" class="mt-6">
+          <p class="text-gray-500 dark:text-gray-400">Clique em "Carregar Resumo".</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modais (mantidos como antes) -->
+  <!-- Despesa Modal -->
+  <div id="despesaModal" tabindex="-1" class="hidden overflow-y-auto fixed inset-0 z-50 justify-center items-center w-full h-full bg-black bg-opacity-50">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+      <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+        <div class="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Registrar Despesa</h3>
+          <button type="button" data-modal-toggle="despesaModal" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <form id="form-despesa">
+          <input type="hidden" id="despesa-id">
+          <div class="grid gap-4 mb-4 sm:grid-cols-2">
+            <div>
+              <label for="despesa-data" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Data</label>
+              <input type="date" id="despesa-data" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div>
+              <label for="despesa-colab" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Colaborador</label>
+              <select id="despesa-colab" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label for="despesa-descricao" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Descrição</label>
+              <input type="text" id="despesa-descricao" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div>
+              <label for="despesa-valor" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Valor (R$)</label>
+              <input type="number" step="0.01" id="despesa-valor" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div>
+              <label for="despesa-tipo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipo de Pagamento</label>
+              <select id="despesa-tipo" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                <option value="credito">Crédito</option>
+                <option value="debito">Débito</option>
+                <option value="pix">Pix</option>
+                <option value="dinheiro">Dinheiro</option>
+              </select>
+            </div>
+            <div>
+              <label for="despesa-categoria" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Categoria</label>
+              <select id="despesa-categoria" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                <option value="">Selecione...</option>
+                <option value="moradia">Moradia</option>
+                <option value="alimentacao">Alimentação</option>
+                <option value="restaurante_lanche">Restaurante/Lanche</option>
+                <option value="casa_utilidades">Casa/Utilidades</option>
+                <option value="saude">Saúde</option>
+                <option value="transporte">Transporte</option>
+                <option value="lazer_outros">Lazer/Outros</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="text-white inline-flex items-center bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700">
+            Salvar Despesa
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Renda Modal -->
+  <div id="rendaModal" tabindex="-1" class="hidden overflow-y-auto fixed inset-0 z-50 justify-center items-center w-full h-full bg-black bg-opacity-50">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+      <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+        <div class="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Registrar Renda</h3>
+          <button type="button" data-modal-toggle="rendaModal" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <form id="form-renda">
+          <input type="hidden" id="renda-id">
+          <div class="grid gap-4 mb-4 sm:grid-cols-2">
+            <div>
+              <label for="renda-colab" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Colaborador</label>
+              <select id="renda-colab" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+            <div>
+              <label for="renda-mes" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mês/Ano</label>
+              <input type="month" id="renda-mes" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div class="sm:col-span-2">
+              <label for="renda-valor" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Valor (R$)</label>
+              <input type="number" step="0.01" id="renda-valor" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+          </div>
+          <button type="submit" class="text-white inline-flex items-center bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700">
+            Salvar Renda
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colaborador Modal -->
+  <div id="colabModal" tabindex="-1" class="hidden overflow-y-auto fixed inset-0 z-50 justify-center items-center w-full h-full bg-black bg-opacity-50">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+      <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+        <div class="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Novo Colaborador</h3>
+          <button type="button" data-modal-toggle="colabModal" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+        <form id="form-colab">
+          <input type="hidden" id="colab-id">
+          <div class="grid gap-4 mb-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="colab-nome" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nome</label>
+              <input type="text" id="colab-nome" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div>
+              <label for="colab-dia" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Dia Fechamento Cartão</label>
+              <input type="number" min="1" max="31" id="colab-dia" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+          </div>
+          <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700">
+            Salvar Colaborador
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" tabindex="-1" class="hidden overflow-y-auto fixed inset-0 z-50 justify-center items-center w-full h-full bg-black bg-opacity-50">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+        <button type="button" data-modal-toggle="deleteModal" class="text-gray-400 absolute top-2.5 right-2.5 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        </button>
+        <svg class="text-gray-400 dark:text-gray-500 w-11 h-11 mb-3.5 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <p class="mb-4 text-gray-500 dark:text-gray-300">Tem certeza que deseja excluir este item?</p>
+        <div class="flex justify-center items-center space-x-4">
+          <button data-modal-toggle="deleteModal" type="button" class="py-2 px-3 text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600">Cancelar</button>
+          <button id="confirm-delete-btn" type="button" class="py-2 px-3 text-sm font-medium text-center text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-500 dark:hover:bg-red-600">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Login -->
+  <div id="loginModal" tabindex="-1" class="hidden overflow-y-auto fixed inset-0 z-50 justify-center items-center w-full h-full bg-black bg-opacity-50">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+      <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+        <div class="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Faça Login</h3>
+        </div>
+        <form id="form-login">
+          <div class="space-y-4">
+            <div>
+              <label for="login-username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Usuário</label>
+              <input type="text" name="username" id="login-username" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div>
+              <label for="login-password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Senha</label>
+              <input type="password" name="password" id="login-password" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            </div>
+            <div id="login-error-message" class="text-red-500 text-sm hidden"></div>
+            <button type="submit" class="w-full text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700">
+              Entrar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 hidden items-center p-4 text-sm font-normal rounded-lg shadow" role="alert">
+    <div id="toast-message"></div>
+  </div>
+
+  <script src="./js/crud.js"></script> <!-- Caminho ajustado para a estrutura do repositório frontend -->
+</body>
+</html>
