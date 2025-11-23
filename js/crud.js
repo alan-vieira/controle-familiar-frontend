@@ -902,6 +902,14 @@ function renderResumoError() {
   }
 }
 
+export { 
+  carregarListaColaboradores, 
+  carregarDespesas, 
+  carregarRendas, 
+  carregarColaboradores,
+  loadingManager 
+};
+
 // Exportar funções globais
 window.editarDespesaFromData = editarDespesaFromData;
 window.editarRenda = editarRenda;

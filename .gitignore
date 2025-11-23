@@ -1,7 +1,11 @@
-node_modules/
-.venv/
-venv/
-.env
-__pycache__/
-*.pyc
-.vscode/
+# .gitattributes
+*.html text
+*.css text
+*.js text
+*.md text
+
+# Especificar que arquivos binários não devem ser modificados
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary

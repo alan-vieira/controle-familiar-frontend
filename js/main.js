@@ -1,5 +1,13 @@
-import { loadingManager } from './crud.js';
-import { carregarListaColaboradores, carregarDespesas, carregarRendas, carregarColaboradores } from './crud.js';
+// js/main.js - VERSÃO CORRIGIDA
+
+// Importação correta das funções
+import { 
+  carregarListaColaboradores, 
+  carregarDespesas, 
+  carregarRendas, 
+  carregarColaboradores,
+  loadingManager 
+} from './crud.js';
 
 // Sistema de Abas
 function initTabs() {
@@ -28,6 +36,21 @@ function initTabs() {
       const targetContent = document.getElementById(targetTab);
       if (targetContent) {
         targetContent.classList.remove('hidden');
+        
+        // Carrega dados da aba quando ativada
+        switch(targetTab) {
+          case 'despesas':
+            const mesDespesas = document.getElementById('despesas-mes')?.value;
+            carregarDespesas(mesDespesas);
+            break;
+          case 'rendas':
+            const mesRendas = document.getElementById('rendas-mes')?.value;
+            carregarRendas(mesRendas);
+            break;
+          case 'colaboradores':
+            carregarColaboradores();
+            break;
+        }
       }
     });
   });
@@ -122,20 +145,6 @@ function initErrorHandling() {
   });
 }
 
-// Health Check da API
-function initHealthCheck() {
-  // Verifica se a API está online periodicamente
-  setInterval(async () => {
-    try {
-      const response = await fetch('https://controle-familiar.onrender.com/health');
-      if (!response.ok) throw new Error('API offline');
-      console.log('✅ API está online');
-    } catch (error) {
-      console.warn('❌ API está offline:', error);
-    }
-  }, 300000); // A cada 5 minutos
-}
-
 // Inicialização da Aplicação
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Inicializando Controle Financeiro Familiar...');
@@ -149,23 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configura dados iniciais
   setupInitialData();
   
-  // Health check (apenas em produção)
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    initHealthCheck();
-  }
-  
   console.log('✅ Aplicação inicializada com sucesso!');
 });
 
-// Service Worker para PWA (opcional)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
+// Export para uso global (se necessário)
+window.initTabs = initTabs;
+window.initModals = initModals;
