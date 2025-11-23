@@ -1,4 +1,4 @@
-// js/main.js - VERSÃO SEM IMPORTS/EXPORTS
+// js/main.js - VERSÃO FINAL SEM MÓDULOS
 
 // Aguarda o DOM carregar completamente
 document.addEventListener('DOMContentLoaded', function() {
@@ -126,11 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnResumo = document.getElementById('btn-carregar-resumo');
     if (btnResumo) {
       btnResumo.addEventListener('click', () => {
-        if (window.carregarResumo) {
-          const mes = document.getElementById('resumo-mes')?.value;
-          if (mes) {
-            window.carregarResumo(mes);
-          }
+        const mes = document.getElementById('resumo-mes')?.value;
+        if (mes) {
+          showToast('Funcionalidade de resumo em desenvolvimento');
         }
       });
     }
@@ -146,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
       input.value = mes;
     });
 
-    // Carrega dados iniciais após um breve delay para garantir que crud.js carregou
+    // Carrega dados iniciais após um breve delay para garantir que todos os scripts carregaram
     setTimeout(() => {
       if (window.carregarListaColaboradores && window.carregarDespesas && window.carregarRendas && window.carregarColaboradores) {
         console.log('✅ Carregando dados iniciais...');
@@ -165,30 +163,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
   }
 
-  // Error Handling Global
-  function initErrorHandling() {
-    window.addEventListener('error', (event) => {
-      console.error('Erro global:', event.error);
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Promise rejeitada:', event.reason);
-    });
-  }
-
   // Inicializa sistemas
   initTabs();
   initModals();
   initFilters();
-  initErrorHandling();
   
   // Configura dados iniciais
   setupInitialData();
   
   console.log('✅ Aplicação inicializada com sucesso!');
 });
-
-// Funções auxiliares globais
-window.initTabs = function() {
-  // Reexport para uso externo se necessário
-};
