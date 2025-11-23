@@ -12,33 +12,34 @@
   <!-- Fonte Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS via CDN -->
+  <!-- Tailwind CSS via CDN (versão estável) -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script>
-    // Configuração do Tailwind que estava no script anterior
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: {
-              "50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd",
-              "400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8",
-              "800":"#1e40af","900":"#1e3a8a","950":"#172554"
-            }
-          }
-        },
-        fontFamily: {
-          body: ['Inter', 'system-ui', 'sans-serif'],
-          sans: ['Inter', 'system-ui', 'sans-serif']
-        }
-      }
-    }
-  </script>
 
+  <!-- CSS Customizado -->
   <link rel="stylesheet" href="./css/style.css">
+  
+  <!-- Configuração do Tailwind (alternativa) -->
+  <style>
+    /* Cores customizadas do primary */
+    .bg-primary-50 { background-color: #eff6ff; }
+    .bg-primary-100 { background-color: #dbeafe; }
+    .bg-primary-200 { background-color: #bfdbfe; }
+    .bg-primary-300 { background-color: #93c5fd; }
+    .bg-primary-400 { background-color: #60a5fa; }
+    .bg-primary-500 { background-color: #3b82f6; }
+    .bg-primary-600 { background-color: #2563eb; }
+    .bg-primary-700 { background-color: #1d4ed8; }
+    .bg-primary-800 { background-color: #1e40af; }
+    .bg-primary-900 { background-color: #1e3a8a; }
+    
+    .text-primary-600 { color: #2563eb; }
+    .border-primary-600 { border-color: #2563eb; }
+    
+    /* Fontes */
+    body { font-family: 'Inter', system-ui, sans-serif; }
+  </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 font-sans">
+<body class="bg-gray-50 dark:bg-gray-900">
 
   <!-- Cabeçalho -->
   <header class="bg-primary-700 text-white py-4 shadow-md">
@@ -347,9 +348,9 @@
     <div id="toast-message"></div>
   </div>
 
-  <!-- Scripts -->
-  <script type="module" src="./js/config.js"></script>
-  <script type="module" src="./js/crud.js"></script>
-  <script type="module" src="./js/main.js"></script>
+  <!-- Scripts (SEM type="module") -->
+  <script src="./js/config.js"></script>
+  <script src="./js/crud.js"></script>
+  <script src="./js/main.js"></script>
 </body>
 </html>

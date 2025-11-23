@@ -911,10 +911,14 @@ export {
 };
 
 // Exportar funções globais
-window.editarDespesaFromData = editarDespesaFromData;
-window.editarRenda = editarRenda;
-window.editarColaborador = editarColaborador;
-window.confirmarExclusao = confirmarExclusao;
+window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
+window.showToast = showToast;
+window.editarDespesa = editarDespesa;
+window.editarRenda = editarRenda;
+window.editarColaborador = editarColaborador;
+window.confirmarExclusao = confirmarExclusao;
+
+console.log('✅ CRUD.js carregado - funções disponíveis globalmente');
