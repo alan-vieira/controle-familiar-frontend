@@ -1,11 +1,7 @@
-// js/crud.js - VERSÃO COMPLETA COM AUTENTICAÇÃO
-
-// =============== CONFIGURAÇÃO ===============
-// Usa CONFIG global definido em config.js
+// js/crud.js - SEM MÓDULOS - VERSÃO CORRIGIDA
+console.log('🔧 CRUD.js carregando...');
 
 // =============== SISTEMA DE AUTENTICAÇÃO ===============
-
-// Função auxiliar para fazer requisições autenticadas
 async function fetchAuth(url, options = {}) {
   const token = localStorage.getItem('token');
   
@@ -17,7 +13,6 @@ async function fetchAuth(url, options = {}) {
     }
   };
 
-  // Adiciona o token de autenticação se existir
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
@@ -28,7 +23,6 @@ async function fetchAuth(url, options = {}) {
   try {
     const response = await fetch(fullUrl, config);
     
-    // Se receber 401 (Unauthorized), redireciona para login
     if (response.status === 401) {
       localStorage.removeItem('token');
       window.location.href = 'login.html';
@@ -48,7 +42,7 @@ async function fetchAuth(url, options = {}) {
 
 // =============== FUNÇÕES UTILITÁRIAS ===============
 function formatDateBR(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return '';
+  if (!dateStr) return '';
   const [yyyy, mm, dd] = dateStr.split('-');
   if (yyyy && mm && dd) {
     return `${dd}/${mm}/${yyyy}`;
@@ -76,17 +70,6 @@ function formatCurrency(value) {
   }).format(value || 0);
 }
 
-function mesAtual() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
-// =============== ESTADO GLOBAL ===============
-let currentDeleteId = null;
-let currentDeleteEndpoint = null;
-let listaColaboradores = [];
-
-// =============== SISTEMA DE TOAST ===============
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   const msg = document.getElementById('toast-message');
@@ -103,7 +86,6 @@ function showToast(message, isError = false) {
   setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
-// =============== SISTEMA DE MODAIS ===============
 function abrirModal(id) {
   const modal = document.getElementById(id);
   if (modal) {
@@ -120,13 +102,17 @@ function fecharModal(id) {
   }
 }
 
+// =============== ESTADO GLOBAL ===============
+let currentDeleteId = null;
+let currentDeleteEndpoint = null;
+let listaColaboradores = [];
+
 // =============== CARREGAR COLABORADORES ===============
 async function carregarListaColaboradores() {
   try {
     const data = await fetchAuth('/api/colaboradores');
     listaColaboradores = data.colaboradores || [];
     
-    // Preenche selects
     const selects = ['despesa-colab', 'renda-colab'];
     selects.forEach(id => {
       const select = document.getElementById(id);
@@ -433,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formColab.reset();
         
         carregarColaboradores();
-        carregarListaColaboradores(); // Atualiza selects
+        carregarListaColaboradores();
       } catch (err) {
         console.error('Erro ao salvar colaborador:', err);
         showToast('Erro ao salvar colaborador.', true);
@@ -453,7 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('Item excluído com sucesso!');
         fecharModal('deleteModal');
         
-        // Recarrega a lista atual
         const mesDespesas = document.getElementById('despesas-mes')?.value;
         const mesRendas = document.getElementById('rendas-mes')?.value;
         
@@ -468,18 +453,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// =============== RESUMO ===============
-function carregarResumo(mes) {
-  showToast('Funcionalidade de resumo em desenvolvimento');
-  // Implementação futura
-}
-
 // =============== EXPORTAÇÕES GLOBAIS ===============
 window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
-window.carregarResumo = carregarResumo;
 window.showToast = showToast;
 window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
@@ -488,15 +466,4 @@ window.editarRenda = editarRenda;
 window.editarColaborador = editarColaborador;
 window.confirmarExclusao = confirmarExclusao;
 
-console.log('✅ CRUD.js carregado - funções disponíveis globalmente');
-
-// Teste automático da conexão
-setTimeout(async () => {
-  console.log('🔍 Testando conexão com backend...');
-  try {
-    const data = await fetchAuth('/api/colaboradores');
-    console.log('✅ Backend conectado! Colaboradores:', data.colaboradores?.length || 0);
-  } catch (error) {
-    console.log('❌ Erro de conexão:', error.message);
-  }
-}, 1000);
+console.log('✅ CRUD.js carregado - SEM MÓDULOS');
