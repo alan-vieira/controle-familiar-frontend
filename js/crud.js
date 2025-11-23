@@ -1,7 +1,50 @@
-// js/crud.js - VERSÃO COMPLETA SEM MÓDULOS
+// js/crud.js - VERSÃO COMPLETA COM AUTENTICAÇÃO
 
 // =============== CONFIGURAÇÃO ===============
 // Usa CONFIG global definido em config.js
+
+// =============== SISTEMA DE AUTENTICAÇÃO ===============
+
+// Função auxiliar para fazer requisições autenticadas
+async function fetchAuth(url, options = {}) {
+  const token = localStorage.getItem('token');
+  
+  const config = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers
+    }
+  };
+
+  // Adiciona o token de autenticação se existir
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+
+  try {
+    const response = await fetch(fullUrl, config);
+    
+    // Se receber 401 (Unauthorized), redireciona para login
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+      throw new Error('Não autorizado');
+    }
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Erro na requisição:', error);
+    throw error;
+  }
+}
 
 // =============== FUNÇÕES UTILITÁRIAS ===============
 function formatDateBR(dateStr) {
@@ -80,12 +123,7 @@ function fecharModal(id) {
 // =============== CARREGAR COLABORADORES ===============
 async function carregarListaColaboradores() {
   try {
-    const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
-    const res = await fetch(`${baseUrl}/api/colaboradores`);
-    
-    if (!res.ok) throw new Error('Erro na requisição');
-    
-    const data = await res.json();
+    const data = await fetchAuth('/api/colaboradores');
     listaColaboradores = data.colaboradores || [];
     
     // Preenche selects
@@ -109,13 +147,9 @@ async function carregarListaColaboradores() {
 // =============== DESPESAS ===============
 async function carregarDespesas(mes = null) {
   try {
-    const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
-    const url = mes ? `${baseUrl}/api/despesas?mes_vigente=${mes}` : `${baseUrl}/api/despesas`;
-    const res = await fetch(url);
+    const url = mes ? `/api/despesas?mes_vigente=${mes}` : `/api/despesas`;
+    const data = await fetchAuth(url);
     
-    if (!res.ok) throw new Error('Erro na requisição');
-    
-    const data = await res.json();
     const tbodyDesktop = document.getElementById('despesas-tbody-desktop');
     const cardsContainer = document.getElementById('despesas-cards');
 
@@ -190,13 +224,9 @@ async function carregarDespesas(mes = null) {
 // =============== RENDAS ===============
 async function carregarRendas(mes = null) {
   try {
-    const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
-    const url = mes ? `${baseUrl}/api/rendas?mes=${mes}` : `${baseUrl}/api/rendas`;
-    const res = await fetch(url);
+    const url = mes ? `/api/rendas?mes=${mes}` : `/api/rendas`;
+    const data = await fetchAuth(url);
     
-    if (!res.ok) throw new Error('Erro na requisição');
-    
-    const data = await res.json();
     const tbody = document.getElementById('rendas-tbody');
     
     if (!tbody) return;
@@ -265,7 +295,6 @@ async function carregarColaboradores() {
 // =============== EDIÇÃO ===============
 function editarDespesa(id) {
   showToast('Funcionalidade de edição em desenvolvimento', false);
-  // Implementação básica - você pode expandir depois
   abrirModal('despesaModal');
 }
 
@@ -285,39 +314,6 @@ function confirmarExclusao(id, tipo) {
   currentDeleteEndpoint = tipo;
   abrirModal('deleteModal');
 }
-
-// Configurar botão de confirmação de exclusão
-document.addEventListener('DOMContentLoaded', function() {
-  const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', async function() {
-      try {
-        const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
-        const res = await fetch(`${baseUrl}/api/${currentDeleteEndpoint}/${currentDeleteId}`, {
-          method: 'DELETE'
-        });
-        
-        if (res.ok) {
-          showToast('Item excluído com sucesso!');
-          fecharModal('deleteModal');
-          
-          // Recarrega a lista atual
-          const mesDespesas = document.getElementById('despesas-mes')?.value;
-          const mesRendas = document.getElementById('rendas-mes')?.value;
-          
-          if (currentDeleteEndpoint === 'despesas') carregarDespesas(mesDespesas);
-          else if (currentDeleteEndpoint === 'rendas') carregarRendas(mesRendas);
-          else carregarColaboradores();
-        } else {
-          throw new Error('Erro ao excluir');
-        }
-      } catch (err) {
-        console.error('Erro ao excluir:', err);
-        showToast('Erro ao excluir item.', true);
-      }
-    });
-  }
-});
 
 // =============== FORMULÁRIOS ===============
 document.addEventListener('DOMContentLoaded', function() {
@@ -340,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       try {
-        const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
         const payload = {
           data_compra: data,
           descricao: descricao,
@@ -350,24 +345,17 @@ document.addEventListener('DOMContentLoaded', function() {
           categoria: categoria
         };
 
-        const res = await fetch(`${baseUrl}/api/despesas`, {
+        await fetchAuth('/api/despesas', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-          showToast('Despesa registrada com sucesso!');
-          fecharModal('despesaModal');
-          formDespesa.reset();
-          
-          const mes = document.getElementById('despesas-mes')?.value;
-          carregarDespesas(mes);
-        } else {
-          throw new Error('Erro ao salvar');
-        }
+        showToast('Despesa registrada com sucesso!');
+        fecharModal('despesaModal');
+        formDespesa.reset();
+        
+        const mes = document.getElementById('despesas-mes')?.value;
+        carregarDespesas(mes);
       } catch (err) {
         console.error('Erro ao salvar despesa:', err);
         showToast('Erro ao salvar despesa.', true);
@@ -391,31 +379,23 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       try {
-        const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
         const payload = {
           colaborador_id: parseInt(colabId),
           mes_ano: mes,
           valor: parseFloat(valor)
         };
 
-        const res = await fetch(`${baseUrl}/api/rendas`, {
+        await fetchAuth('/api/rendas', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-          showToast('Renda registrada com sucesso!');
-          fecharModal('rendaModal');
-          formRenda.reset();
-          
-          const mesAtual = document.getElementById('rendas-mes')?.value;
-          carregarRendas(mesAtual);
-        } else {
-          throw new Error('Erro ao salvar');
-        }
+        showToast('Renda registrada com sucesso!');
+        fecharModal('rendaModal');
+        formRenda.reset();
+        
+        const mesAtual = document.getElementById('rendas-mes')?.value;
+        carregarRendas(mesAtual);
       } catch (err) {
         console.error('Erro ao salvar renda:', err);
         showToast('Erro ao salvar renda.', true);
@@ -438,43 +418,68 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       try {
-        const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
         const payload = {
           nome: nome,
           dia_fechamento: parseInt(dia)
         };
 
-        const res = await fetch(`${baseUrl}/api/colaboradores`, {
+        await fetchAuth('/api/colaboradores', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-          showToast('Colaborador criado com sucesso!');
-          fecharModal('colabModal');
-          formColab.reset();
-          
-          carregarColaboradores();
-          carregarListaColaboradores(); // Atualiza selects
-        } else {
-          throw new Error('Erro ao salvar');
-        }
+        showToast('Colaborador criado com sucesso!');
+        fecharModal('colabModal');
+        formColab.reset();
+        
+        carregarColaboradores();
+        carregarListaColaboradores(); // Atualiza selects
       } catch (err) {
         console.error('Erro ao salvar colaborador:', err);
         showToast('Erro ao salvar colaborador.', true);
       }
     });
   }
+
+  // Botão de confirmação de exclusão
+  const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', async function() {
+      try {
+        await fetchAuth(`/api/${currentDeleteEndpoint}/${currentDeleteId}`, {
+          method: 'DELETE'
+        });
+        
+        showToast('Item excluído com sucesso!');
+        fecharModal('deleteModal');
+        
+        // Recarrega a lista atual
+        const mesDespesas = document.getElementById('despesas-mes')?.value;
+        const mesRendas = document.getElementById('rendas-mes')?.value;
+        
+        if (currentDeleteEndpoint === 'despesas') carregarDespesas(mesDespesas);
+        else if (currentDeleteEndpoint === 'rendas') carregarRendas(mesRendas);
+        else carregarColaboradores();
+      } catch (err) {
+        console.error('Erro ao excluir:', err);
+        showToast('Erro ao excluir item.', true);
+      }
+    });
+  }
 });
+
+// =============== RESUMO ===============
+function carregarResumo(mes) {
+  showToast('Funcionalidade de resumo em desenvolvimento');
+  // Implementação futura
+}
 
 // =============== EXPORTAÇÕES GLOBAIS ===============
 window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
+window.carregarResumo = carregarResumo;
 window.showToast = showToast;
 window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
@@ -484,3 +489,14 @@ window.editarColaborador = editarColaborador;
 window.confirmarExclusao = confirmarExclusao;
 
 console.log('✅ CRUD.js carregado - funções disponíveis globalmente');
+
+// Teste automático da conexão
+setTimeout(async () => {
+  console.log('🔍 Testando conexão com backend...');
+  try {
+    const data = await fetchAuth('/api/colaboradores');
+    console.log('✅ Backend conectado! Colaboradores:', data.colaboradores?.length || 0);
+  } catch (error) {
+    console.log('❌ Erro de conexão:', error.message);
+  }
+}, 1000);

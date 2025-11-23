@@ -38,6 +38,17 @@
     /* Fontes */
     body { font-family: 'Inter', system-ui, sans-serif; }
   </style>
+
+  <!-- VERIFICAÇÃO DE AUTENTICAÇÃO (ADICIONE ISSO) -->
+  <script>
+    // Verifica se o usuário está logado
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redireciona para login se não estiver autenticado
+      window.location.href = 'login.html';
+    }
+  </script>
+
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
 
