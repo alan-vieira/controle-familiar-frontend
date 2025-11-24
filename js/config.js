@@ -1,4 +1,3 @@
-// js/config.js - SEM MÓDULOS - VERSÃO CORRIGIDA
 window.CONFIG = {
   API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:10000'
@@ -25,5 +24,3 @@ window.TIPOS_PAGAMENTO = {
   pix: 'Pix',
   dinheiro: 'Dinheiro'
 };
-
-console.log('✅ Config.js carregado - SEM MÓDULOS');

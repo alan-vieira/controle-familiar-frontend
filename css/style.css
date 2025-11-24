@@ -3,13 +3,11 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Estilo da aba ativa */
 .active-tab {
   color: #2563eb;
   border-color: #2563eb;
 }
 
-/* Aumentar área de toque em botões de ação */
 .btn-editar,
 .btn-excluir {
   padding: 0.5rem;
@@ -18,7 +16,6 @@ body {
   border-radius: 0.25rem;
 }
 
-/* Melhorar posicionamento de modais em telas pequenas */
 @media (max-height: 600px) {
   .fixed.inset-0.z-50 {
     align-items: flex-start;
@@ -27,7 +24,6 @@ body {
   }
 }
 
-/* Estilo dos cards em mobile */
 #despesas-cards .bg-white {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -44,7 +40,6 @@ body {
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* Estados interativos melhorados */
 .btn-editar:hover,
 .btn-excluir:hover {
   background-color: rgba(0, 0, 0, 0.05);
@@ -58,7 +53,6 @@ body {
   outline-offset: 2px;
 }
 
-/* Melhorar acessibilidade em dark mode */
 @media (prefers-color-scheme: dark) {
   .btn-editar:hover,
   .btn-excluir:hover {
@@ -66,7 +60,6 @@ body {
   }
 }
 
-/* Transições para modais */
 .fixed.inset-0.z-50 {
   transition: opacity 0.3s ease;
 }
@@ -89,7 +82,6 @@ body {
   to { opacity: 0; }
 }
 
-/* Animações para cards */
 .mobile-card {
   transition: all 0.3s ease;
   animation: slideUp 0.4s ease;
@@ -106,19 +98,16 @@ body {
   }
 }
 
-/* Melhor legibilidade */
 .text-gray-500 {
   line-height: 1.5;
 }
 
-/* Espaçamento consistente em tabelas */
 table th,
 table td {
   padding: 0.75rem 1rem;
   vertical-align: middle;
 }
 
-/* Headers de tabela mais destacados */
 thead th {
   font-weight: 600;
   letter-spacing: 0.025em;
@@ -131,7 +120,6 @@ thead th {
   }
 }
 
-/* Estados de loading */
 .loading-state {
   opacity: 0.6;
   pointer-events: none;
@@ -176,7 +164,6 @@ thead th {
   to { transform: rotate(360deg); }
 }
 
-/* Skeleton loading */
 .skeleton-loading {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -188,7 +175,6 @@ thead th {
   100% { background-position: -200% 0; }
 }
 
-/* Botões desabilitados */
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -199,7 +185,6 @@ button:disabled:hover {
   background-color: initial;
 }
 
-/* Scrollbar customizada para navegadores WebKit */
 .overflow-x-auto::-webkit-scrollbar {
   height: 6px;
 }
@@ -232,7 +217,6 @@ button:disabled:hover {
   }
 }
 
-/* Melhorias para tablets */
 @media (min-width: 768px) and (max-width: 1024px) {
   .container {
     padding-left: 1rem;
@@ -246,7 +230,6 @@ button:disabled:hover {
   }
 }
 
-/* Otimização para telas muito pequenas */
 @media (max-width: 360px) {
   .text-sm {
     font-size: 0.75rem;
@@ -261,7 +244,6 @@ button:disabled:hover {
   }
 }
 
-/* Estados de input com foco */
 input:focus,
 select:focus,
 textarea:focus {
@@ -269,7 +251,6 @@ textarea:focus {
   border-color: #3b82f6;
 }
 
-/* Validação de formulários */
 input:invalid:not(:focus) {
   border-color: #ef4444;
 }
@@ -278,7 +259,6 @@ input:valid:not(:focus) {
   border-color: #10b981;
 }
 
-/* Placeholders estilizados */
 input::placeholder {
   color: #9ca3af;
   opacity: 1;
@@ -290,7 +270,6 @@ input::placeholder {
   }
 }
 
-/* Destaque para valores monetários */
 .text-red-600 {
   font-weight: 600;
 }
@@ -299,7 +278,6 @@ input::placeholder {
   font-weight: 600;
 }
 
-/* Badges para categorias */
 .categoria-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -318,7 +296,6 @@ input::placeholder {
 .categoria-transporte { background-color: #fef3c7; color: #92400e; }
 .categoria-lazer_outros { background-color: #f3e8ff; color: #6b21a8; }
 
-/* Estados vazios estilizados */
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -348,7 +325,6 @@ input::placeholder {
   }
 }
 
-/* Sombras consistentes */
 .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -357,40 +333,14 @@ input::placeholder {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Container responsivo melhorado */
 .container {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-@media (min-width: 1400px) {
-  .container {
-    max-width: 1320px;
-  }
-}
-
-/* Utilitário para texto truncado com ellipsis */
 .truncate-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-/* Loading global */
-.global-loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
-  background-size: 200% 100%;
-  animation: loading-bar 2s infinite;
-  z-index: 1000;
-}
-
-@keyframes loading-bar {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }

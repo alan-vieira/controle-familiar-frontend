@@ -12,43 +12,34 @@
   <!-- Fonte Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS via CDN (versão estável) -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-  <!-- CSS Customizado -->
-  <link rel="stylesheet" href="./css/style.css">
-  
-  <!-- Configuração do Tailwind (alternativa) -->
-  <style>
-    /* Cores customizadas do primary */
-    .bg-primary-50 { background-color: #eff6ff; }
-    .bg-primary-100 { background-color: #dbeafe; }
-    .bg-primary-200 { background-color: #bfdbfe; }
-    .bg-primary-300 { background-color: #93c5fd; }
-    .bg-primary-400 { background-color: #60a5fa; }
-    .bg-primary-500 { background-color: #3b82f6; }
-    .bg-primary-600 { background-color: #2563eb; }
-    .bg-primary-700 { background-color: #1d4ed8; }
-    .bg-primary-800 { background-color: #1e40af; }
-    .bg-primary-900 { background-color: #1e3a8a; }
-    
-    .text-primary-600 { color: #2563eb; }
-    .border-primary-600 { border-color: #2563eb; }
-    
-    /* Fontes */
-    body { font-family: 'Inter', system-ui, sans-serif; }
-  </style>
-
-  <!-- VERIFICAÇÃO DE AUTENTICAÇÃO (ADICIONE ISSO) -->
+  <!-- Tailwind via CDN com dark mode -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Verifica se o usuário está logado
-    const token = localStorage.getItem('token');
-    if (!token) {
-      // Redireciona para login se não estiver autenticado
-      window.location.href = 'login.html';
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
     }
   </script>
 
+  <!-- CSS Customizado -->
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
 
@@ -206,7 +197,7 @@
 
   </main>
 
-  <!-- Modais -->
+  <!-- Modais (mantidos como no original, sem alteração funcional) -->
   <!-- Despesa Modal -->
   <div id="despesaModal" tabindex="-1" class="hidden overflow-y-auto fixed inset-0 z-50 justify-center items-center w-full h-full bg-black bg-opacity-50">
     <div class="relative p-4 w-full max-w-2xl max-h-full">
@@ -359,7 +350,7 @@
     <div id="toast-message"></div>
   </div>
 
-  <!-- Scripts (SEM type="module") -->
+  <!-- Scripts -->
   <script src="./js/config.js"></script>
   <script src="./js/crud.js"></script>
   <script src="./js/main.js"></script>
