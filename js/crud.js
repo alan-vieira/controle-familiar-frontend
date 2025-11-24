@@ -1,41 +1,42 @@
-// js/crud.js
-console.log('🔧 CRUD.js carregando...');
-
-// Nova função de API — SEM TOKEN, com cookies
-async function fetchApi(url, options = {}) {
+async function fetchAuth(url, options = {}) {
+  const token = localStorage.getItem('token');
   const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const config = {
     ...options,
-    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers
     }
   };
 
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(fullUrl, config);
-
+    
     if (response.status === 401) {
+      localStorage.removeItem('token');
       window.location.href = 'login.html';
-      return;
+      throw new Error('Não autorizado');
     }
-
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.msg || `Erro ${response.status}`);
+      throw new Error(errorData.error || errorData.msg || `Erro ${response.status}`);
     }
-
+    
     return await response.json();
   } catch (error) {
-    console.error('Erro na API:', error);
+    console.error('Erro na requisição:', error);
     throw error;
   }
 }
 
-// Funções utilitárias (mantidas)
+// --- Utilitários ---
 function formatDateBR(dateStr) {
   if (!dateStr) return '';
   const [yyyy, mm, dd] = dateStr.split('-');
@@ -43,8 +44,7 @@ function formatDateBR(dateStr) {
 }
 
 function formatCategoria(cat) {
-  const labels = window.CATEGORIAS || {};
-  return labels[cat] || cat;
+  return (window.CATEGORIAS || {})[cat] || cat;
 }
 
 function formatCurrency(value) {
@@ -55,12 +55,9 @@ function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   const msg = document.getElementById('toast-message');
   if (!toast || !msg) return;
-  
   msg.textContent = message;
   toast.className = `fixed bottom-4 right-4 flex items-center p-4 text-sm font-normal rounded-lg shadow ${
-    isError 
-      ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-800' 
-      : 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-800'
+    isError ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-800' : 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-800'
   }`;
   toast.classList.remove('hidden');
   setTimeout(() => toast.classList.add('hidden'), 3000);
@@ -82,287 +79,203 @@ function fecharModal(id) {
   }
 }
 
-// Estado global
+// --- Estado ---
 let currentDeleteId = null;
 let currentDeleteEndpoint = null;
 let listaColaboradores = [];
 
-// Carregar colaboradores
+// --- Funções principais ---
 async function carregarListaColaboradores() {
   try {
-    const data = await fetchApi('/api/colaboradores');
-    listaColaboradores = data.colaboradores || [];
-    
+    const data = await fetchAuth('/api/colaboradores');
+    listaColaboradores = Array.isArray(data) ? data : (data.colaboradores || []);
     ['despesa-colab', 'renda-colab'].forEach(id => {
-      const select = document.getElementById(id);
-      if (select) {
-        select.innerHTML = '<option value="">Selecione...</option>' +
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerHTML = '<option value="">Selecione...</option>' +
           listaColaboradores.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
       }
     });
     return listaColaboradores;
   } catch (err) {
-    console.error('Erro ao carregar colaboradores:', err);
     showToast('Erro ao carregar colaboradores.', true);
     return [];
   }
 }
 
-// Despesas
 async function carregarDespesas(mes = null) {
   try {
-    const url = mes ? `/api/despesas?mes_vigente=${mes}` : `/api/despesas`;
-    const data = await fetchApi(url);
+    const url = mes ? `/api/despesas?mes_vigente=${mes}` : '/api/despesas';
+    const data = await fetchAuth(url);
+    const despesas = Array.isArray(data) ? data : (data.despesas || data);
     
     const tbody = document.getElementById('despesas-tbody-desktop');
     const cards = document.getElementById('despesas-cards');
-
-    if (!data || data.length === 0) {
-      if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Nenhuma despesa.</td></tr>';
-      if (cards) cards.innerHTML = '<p class="text-center text-gray-500">Nenhuma despesa.</p>';
-      return;
-    }
-
-    if (tbody) {
-      tbody.innerHTML = data.map(d => {
-        const colab = listaColaboradores.find(c => c.id === d.colaborador_id);
-        return `
-          <tr>
-            <td class="px-2 py-3">${formatDateBR(d.data_compra)}</td>
-            <td class="px-2 py-3"><div class="font-medium">${d.descricao}</div><div class="text-xs text-gray-500">${colab?.nome || 'N/A'}</div></td>
-            <td class="px-2 py-3">${formatCategoria(d.categoria)}</td>
-            <td class="px-2 py-3 text-red-600 font-semibold">${formatCurrency(d.valor)}</td>
-            <td class="px-2 py-3">
-              <button onclick="editarDespesa(${d.id})" class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
-              <button onclick="confirmarExclusao(${d.id}, 'despesas')" class="text-red-600 hover:text-red-900">Excluir</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    if (cards) {
-      cards.innerHTML = data.map(d => {
-        const colab = listaColaboradores.find(c => c.id === d.colaborador_id);
-        return `
-          <div class="mobile-card bg-white dark:bg-gray-700 border rounded-lg p-4 shadow-sm">
-            <div class="flex justify-between mb-2">
-              <span class="font-medium">${formatDateBR(d.data_compra)}</span>
-              <span class="text-red-600 font-bold">${formatCurrency(d.valor)}</span>
-            </div>
-            <div class="font-medium mb-1">${d.descricao}</div>
-            <div class="text-xs text-gray-500 mb-2">${colab?.nome || 'N/A'}</div>
-            <div class="flex justify-between items-center">
-              <span class="categoria-badge categoria-${d.categoria}">${formatCategoria(d.categoria)}</span>
-              <div>
-                <button onclick="editarDespesa(${d.id})" class="text-blue-600 text-sm mr-2">Editar</button>
-                <button onclick="confirmarExclusao(${d.id}, 'despesas')" class="text-red-600 text-sm">Excluir</button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
+    
+    const emptyMsg = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Nenhuma despesa.</td></tr>';
+    const emptyCards = '<p class="text-center text-gray-500">Nenhuma despesa.</p>';
+    
+    if (tbody) tbody.innerHTML = despesas.length ? despesas.map(d => `
+      <tr><td>${formatDateBR(d.data_compra)}</td><td>${d.descricao}</td><td>${formatCategoria(d.categoria)}</td><td class="text-red-600 font-semibold">${formatCurrency(d.valor)}</td><td><button onclick="editarDespesa(${d.id})" class="text-blue-600">Editar</button> <button onclick="confirmarExclusao(${d.id}, 'despesas')" class="text-red-600">Excluir</button></td></tr>
+    `).join('') : emptyMsg;
+    
+    if (cards) cards.innerHTML = despesas.length ? despesas.map(d => `
+      <div class="mobile-card bg-white dark:bg-gray-700 border rounded p-3 shadow-sm">
+        <div class="flex justify-between"><span>${formatDateBR(d.data_compra)}</span><span class="text-red-600">${formatCurrency(d.valor)}</span></div>
+        <div class="font-medium">${d.descricao}</div>
+        <div class="flex justify-between mt-2">
+          <span class="categoria-badge categoria-${d.categoria}">${formatCategoria(d.categoria)}</span>
+          <div><button onclick="editarDespesa(${d.id})" class="text-blue-600 text-sm">Editar</button> <button onclick="confirmarExclusao(${d.id}, 'despesas')" class="text-red-600 text-sm">Excluir</button></div>
+        </div>
+      </div>
+    `).join('') : emptyCards;
   } catch (err) {
-    console.error('Erro ao carregar despesas:', err);
     showToast('Erro ao carregar despesas.', true);
   }
 }
 
-// Rendas
 async function carregarRendas(mes = null) {
   try {
-    const url = mes ? `/api/rendas?mes=${mes}` : `/api/rendas`;
-    const data = await fetchApi(url);
+    const url = mes ? `/api/rendas?mes=${mes}` : '/api/rendas';
+    const data = await fetchAuth(url);
+    const rendas = Array.isArray(data) ? data : (data.rendas || []);
     
     const tbody = document.getElementById('rendas-tbody');
     if (!tbody) return;
-
-    const rendas = data.rendas || [];
-    if (rendas.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Nenhuma renda.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = rendas.map(r => `
-      <tr>
-        <td class="px-4 py-3">${r.nome}</td>
-        <td class="px-4 py-3">${r.mes_ano}</td>
-        <td class="px-4 py-3 text-green-600 font-semibold">${formatCurrency(r.valor)}</td>
-        <td class="px-4 py-3">
-          <button onclick="editarRenda(${r.id})" class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
-          <button onclick="confirmarExclusao(${r.id}, 'rendas')" class="text-red-600 hover:text-red-900">Excluir</button>
-        </td>
-      </tr>
-    `).join('');
+    
+    tbody.innerHTML = rendas.length ? rendas.map(r => `
+      <tr><td>${r.nome}</td><td>${r.mes_ano}</td><td class="text-green-600 font-semibold">${formatCurrency(r.valor)}</td><td><button onclick="editarRenda(${r.id})" class="text-blue-600">Editar</button> <button onclick="confirmarExclusao(${r.id}, 'rendas')" class="text-red-600">Excluir</button></td></tr>
+    `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Nenhuma renda.</td></tr>';
   } catch (err) {
-    console.error('Erro ao carregar rendas:', err);
     showToast('Erro ao carregar rendas.', true);
   }
 }
 
-// Colaboradores
 async function carregarColaboradores() {
   try {
     await carregarListaColaboradores();
     const tbody = document.getElementById('colabs-tbody');
     if (!tbody) return;
-
-    if (listaColaboradores.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Nenhum colaborador.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = listaColaboradores.map(c => `
-      <tr>
-        <td class="px-4 py-3">${c.nome}</td>
-        <td class="px-4 py-3">Dia ${c.dia_fechamento}</td>
-        <td class="px-4 py-3">
-          <button onclick="editarColaborador(${c.id})" class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
-          <button onclick="confirmarExclusao(${c.id}, 'colaboradores')" class="text-red-600 hover:text-red-900">Excluir</button>
-        </td>
-      </tr>
-    `).join('');
+    
+    tbody.innerHTML = listaColaboradores.length ? listaColaboradores.map(c => `
+      <tr><td>${c.nome}</td><td>Dia ${c.dia_fechamento}</td><td><button onclick="editarColaborador(${c.id})" class="text-blue-600">Editar</button> <button onclick="confirmarExclusao(${c.id}, 'colaboradores')" class="text-red-600">Excluir</button></td></tr>
+    `).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Nenhum colaborador.</td></tr>';
   } catch (err) {
-    console.error('Erro ao carregar colaboradores:', err);
     showToast('Erro ao carregar colaboradores.', true);
   }
 }
 
-// Funções de edição (placeholders)
-function editarDespesa(id) { showToast('Edição em breve.'); }
-function editarRenda(id) { showToast('Edição em breve.'); }
-function editarColaborador(id) { showToast('Edição em breve.'); }
+// --- Edição/Exclusão ---
+function editarDespesa(id) { showToast('Edição em desenvolvimento.'); }
+function editarRenda(id) { showToast('Edição em desenvolvimento.'); }
+function editarColaborador(id) { showToast('Edição em desenvolvimento.'); }
 
-// Exclusão
 function confirmarExclusao(id, tipo) {
   currentDeleteId = id;
   currentDeleteEndpoint = tipo;
   abrirModal('deleteModal');
 }
 
-// Eventos de formulário
+// --- Eventos ---
 document.addEventListener('DOMContentLoaded', function() {
-  // Despesa
-  const formDespesa = document.getElementById('form-despesa');
-  if (formDespesa) {
-    formDespesa.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { value: data } = document.getElementById('despesa-data');
-      const { value: descricao } = document.getElementById('despesa-descricao');
-      const { value: valor } = document.getElementById('despesa-valor');
-      const { value: tipo } = document.getElementById('despesa-tipo');
-      const { value: colabId } = document.getElementById('despesa-colab');
-      const { value: categoria } = document.getElementById('despesa-categoria');
+  // Despesa form
+  const f1 = document.getElementById('form-despesa');
+  if (f1) f1.addEventListener('submit', async e => {
+    e.preventDefault();
+    const data = document.getElementById('despesa-data').value;
+    const descricao = document.getElementById('despesa-descricao').value;
+    const valor = parseFloat(document.getElementById('despesa-valor').value);
+    const tipo = document.getElementById('despesa-tipo').value;
+    const colab = parseInt(document.getElementById('despesa-colab').value);
+    const cat = document.getElementById('despesa-categoria').value;
+    
+    if (!data || !descricao || !valor || !tipo || !colab || !cat) {
+      showToast('Preencha todos os campos.', true);
+      return;
+    }
+    
+    try {
+      await fetchAuth('/api/despesas', { method: 'POST', body: JSON.stringify({
+        data_compra: data, descricao, valor, tipo_pg: tipo, colaborador_id: colab, categoria: cat
+      })});
+      showToast('Despesa salva!');
+      fecharModal('despesaModal');
+      f1.reset();
+      carregarDespesas(document.getElementById('despesas-mes')?.value);
+    } catch (err) {
+      showToast('Erro ao salvar.', true);
+    }
+  });
 
-      if (!data || !descricao || !valor || !tipo || !colabId || !categoria) {
-        showToast('Preencha todos os campos.', true);
-        return;
-      }
+  // Renda form
+  const f2 = document.getElementById('form-renda');
+  if (f2) f2.addEventListener('submit', async e => {
+    e.preventDefault();
+    const colab = parseInt(document.getElementById('renda-colab').value);
+    const mes = document.getElementById('renda-mes').value;
+    const valor = parseFloat(document.getElementById('renda-valor').value);
+    
+    if (!colab || !mes || !valor) {
+      showToast('Preencha todos os campos.', true);
+      return;
+    }
+    
+    try {
+      await fetchAuth('/api/rendas', { method: 'POST', body: JSON.stringify({
+        colaborador_id: colab, mes_ano: mes, valor
+      })});
+      showToast('Renda salva!');
+      fecharModal('rendaModal');
+      f2.reset();
+      carregarRendas(document.getElementById('rendas-mes')?.value);
+    } catch (err) {
+      showToast('Erro ao salvar.', true);
+    }
+  });
 
-      try {
-        await fetchApi('/api/despesas', {
-          method: 'POST',
-          body: JSON.stringify({
-            data_compra: data,
-            descricao,
-            valor: parseFloat(valor),
-            tipo_pg: tipo,
-            colaborador_id: parseInt(colabId),
-            categoria
-          })
-        });
-        showToast('Despesa salva!');
-        fecharModal('despesaModal');
-        formDespesa.reset();
-        carregarDespesas(document.getElementById('despesas-mes')?.value);
-      } catch (err) {
-        showToast('Erro ao salvar.', true);
-      }
-    });
-  }
+  // Colab form
+  const f3 = document.getElementById('form-colab');
+  if (f3) f3.addEventListener('submit', async e => {
+    e.preventDefault();
+    const nome = document.getElementById('colab-nome').value;
+    const dia = parseInt(document.getElementById('colab-dia').value);
+    
+    if (!nome || !dia) {
+      showToast('Preencha todos os campos.', true);
+      return;
+    }
+    
+    try {
+      await fetchAuth('/api/colaboradores', { method: 'POST', body: JSON.stringify({
+        nome, dia_fechamento: dia
+      })});
+      showToast('Colaborador salvo!');
+      fecharModal('colabModal');
+      f3.reset();
+      carregarColaboradores();
+      carregarListaColaboradores();
+    } catch (err) {
+      showToast('Erro ao salvar.', true);
+    }
+  });
 
-  // Renda
-  const formRenda = document.getElementById('form-renda');
-  if (formRenda) {
-    formRenda.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const colabId = document.getElementById('renda-colab').value;
-      const mes = document.getElementById('renda-mes').value;
-      const valor = document.getElementById('renda-valor').value;
-
-      if (!colabId || !mes || !valor) {
-        showToast('Preencha todos os campos.', true);
-        return;
-      }
-
-      try {
-        await fetchApi('/api/rendas', {
-          method: 'POST',
-          body: JSON.stringify({
-            colaborador_id: parseInt(colabId),
-            mes_ano: mes,
-            valor: parseFloat(valor)
-          })
-        });
-        showToast('Renda salva!');
-        fecharModal('rendaModal');
-        formRenda.reset();
-        carregarRendas(document.getElementById('rendas-mes')?.value);
-      } catch (err) {
-        showToast('Erro ao salvar.', true);
-      }
-    });
-  }
-
-  // Colaborador
-  const formColab = document.getElementById('form-colab');
-  if (formColab) {
-    formColab.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('colab-nome').value;
-      const dia = document.getElementById('colab-dia').value;
-
-      if (!nome || !dia) {
-        showToast('Preencha todos os campos.', true);
-        return;
-      }
-
-      try {
-        await fetchApi('/api/colaboradores', {
-          method: 'POST',
-          body: JSON.stringify({ nome, dia_fechamento: parseInt(dia) })
-        });
-        showToast('Colaborador salvo!');
-        fecharModal('colabModal');
-        formColab.reset();
-        carregarColaboradores();
-        carregarListaColaboradores();
-      } catch (err) {
-        showToast('Erro ao salvar.', true);
-      }
-    });
-  }
-
-  // Confirmação de exclusão
-  const btn = document.getElementById('confirm-delete-btn');
-  if (btn) {
-    btn.addEventListener('click', async () => {
-      try {
-        await fetchApi(`/api/${currentDeleteEndpoint}/${currentDeleteId}`, { method: 'DELETE' });
-        showToast('Excluído com sucesso!');
-        fecharModal('deleteModal');
-        if (currentDeleteEndpoint === 'despesas') carregarDespesas(document.getElementById('despesas-mes')?.value);
-        else if (currentDeleteEndpoint === 'rendas') carregarRendas(document.getElementById('rendas-mes')?.value);
-        else carregarColaboradores();
-      } catch (err) {
-        showToast('Erro ao excluir.', true);
-      }
-    });
-  }
+  // Delete button
+  const delBtn = document.getElementById('confirm-delete-btn');
+  if (delBtn) delBtn.addEventListener('click', async () => {
+    try {
+      await fetchAuth(`/api/${currentDeleteEndpoint}/${currentDeleteId}`, { method: 'DELETE' });
+      showToast('Excluído com sucesso!');
+      fecharModal('deleteModal');
+      if (currentDeleteEndpoint === 'despesas') carregarDespesas(document.getElementById('despesas-mes')?.value);
+      else if (currentDeleteEndpoint === 'rendas') carregarRendas(document.getElementById('rendas-mes')?.value);
+      else carregarColaboradores();
+    } catch (err) {
+      showToast('Erro ao excluir.', true);
+    }
+  });
 });
 
-// Exportações globais
+// --- Exportações globais ---
 window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
@@ -374,5 +287,3 @@ window.confirmarExclusao = confirmarExclusao;
 window.showToast = showToast;
 window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
-
-console.log('✅ CRUD.js carregado — corrigido para sessão com cookies');
