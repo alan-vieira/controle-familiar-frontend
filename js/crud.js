@@ -1,6 +1,9 @@
+// js/crud.js - Lógica de API, utilitários e CRUD para despesas, rendas e colaboradores
+
+// Função de fetch autenticada com melhorias
 async function fetchAuth(url, options = {}) {
   const token = localStorage.getItem('token');
-  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com'; // ← ESPAÇOS REMOVIDOS
+  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const config = {
@@ -15,8 +18,13 @@ async function fetchAuth(url, options = {}) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Timeout para evitar hangs
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s
+
   try {
-    const response = await fetch(fullUrl, config);
+    const response = await fetch(fullUrl, { ...config, signal: controller.signal });
+    clearTimeout(timeoutId);
     
     if (response.status === 401) {
       localStorage.removeItem('token');
@@ -31,12 +39,13 @@ async function fetchAuth(url, options = {}) {
     
     return await response.json();
   } catch (error) {
+    if (error.name === 'AbortError') throw new Error('Requisição timeout');
     console.error('Erro na requisição:', error);
     throw error;
   }
 }
 
-// --- Utilitários ---
+// Utilitários
 function formatDateBR(dateStr) {
   if (!dateStr) return '';
   const [yyyy, mm, dd] = dateStr.split('-');
@@ -54,7 +63,10 @@ function formatCurrency(value) {
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   const msg = document.getElementById('toast-message');
-  if (!toast || !msg) return;
+  if (!toast || !msg) {
+    console.warn('Elementos de toast não encontrados.');
+    return;
+  }
   msg.textContent = message;
   toast.className = `fixed bottom-4 right-4 flex items-center p-4 text-sm font-normal rounded-lg shadow ${
     isError ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-800' : 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-800'
@@ -79,12 +91,12 @@ function fecharModal(id) {
   }
 }
 
-// --- Estado ---
+// Estado
 let currentDeleteId = null;
 let currentDeleteEndpoint = null;
 let listaColaboradores = [];
 
-// --- Funções principais ---
+// Funções principais
 async function carregarListaColaboradores() {
   try {
     const data = await fetchAuth('/api/colaboradores');
@@ -107,7 +119,7 @@ async function carregarDespesas(mes = null) {
   try {
     const url = mes ? `/api/despesas?mes_vigente=${mes}` : '/api/despesas';
     const data = await fetchAuth(url);
-    const despesas = Array.isArray(data) ? data : (data.despesas || data);
+    const despesas = Array.isArray(data) ? data : (data.despesas || []);
     
     const tbody = document.getElementById('despesas-tbody-desktop');
     const cards = document.getElementById('despesas-cards');
@@ -165,8 +177,35 @@ async function carregarColaboradores() {
   }
 }
 
-// --- Edição/Exclusão ---
-function editarDespesa(id) { showToast('Edição em desenvolvimento.'); }
+// Função para resumo (básica - expanda com gráficos se necessário)
+async function carregarResumo(mes) {
+  try {
+    const [despesasData, rendasData] = await Promise.all([
+      fetchAuth(`/api/despesas?mes_vigente=${mes}`),
+      fetchAuth(`/api/rendas?mes=${mes}`)
+    ]);
+    const totalDespesas = (Array.isArray(despesasData) ? despesasData : despesasData.despesas || []).reduce((sum, d) => sum + (d.valor || 0), 0);
+    const totalRendas = (Array.isArray(rendasData) ? rendasData : rendasData.rendas || []).reduce((sum, r) => sum + (r.valor || 0), 0);
+    const saldo = totalRendas - totalDespesas;
+    
+    const content = document.getElementById('resumo-content');
+    if (content) {
+      content.innerHTML = `
+        <p>Total Despesas: ${formatCurrency(totalDespesas)}</p>
+        <p>Total Rendas: ${formatCurrency(totalRendas)}</p>
+        <p>Saldo: ${formatCurrency(saldo)} (${saldo >= 0 ? 'Positivo' : 'Negativo'})</p>
+      `;
+    }
+  } catch (err) {
+    showToast('Erro ao carregar resumo.', true);
+  }
+}
+
+// Edição (placeholders - implemente modais completas)
+function editarDespesa(id) { 
+  // Exemplo: Abrir modal e preencher com dados
+  showToast('Edição em desenvolvimento. Use API para buscar dados do ID.');
+}
 function editarRenda(id) { showToast('Edição em desenvolvimento.'); }
 function editarColaborador(id) { showToast('Edição em desenvolvimento.'); }
 
@@ -176,7 +215,7 @@ function confirmarExclusao(id, tipo) {
   abrirModal('deleteModal');
 }
 
-// --- Eventos ---
+// Eventos (formulários com validações)
 document.addEventListener('DOMContentLoaded', function() {
   // Despesa form
   const f1 = document.getElementById('form-despesa');
@@ -189,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const colab = parseInt(document.getElementById('despesa-colab').value);
     const cat = document.getElementById('despesa-categoria').value;
     
-    if (!data || !descricao || !valor || !tipo || !colab || !cat) {
-      showToast('Preencha todos os campos.', true);
+    if (!data || !descricao || isNaN(valor) || valor <= 0 || !tipo || !colab || !cat) {
+      showToast('Preencha todos os campos corretamente.', true);
       return;
     }
     
@@ -207,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Renda form
+  // Renda form (similar, com validações)
   const f2 = document.getElementById('form-renda');
   if (f2) f2.addEventListener('submit', async e => {
     e.preventDefault();
@@ -215,8 +254,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mes = document.getElementById('renda-mes').value;
     const valor = parseFloat(document.getElementById('renda-valor').value);
     
-    if (!colab || !mes || !valor) {
-      showToast('Preencha todos os campos.', true);
+    if (!colab || !mes || isNaN(valor) || valor <= 0) {
+      showToast('Preencha todos os campos corretamente.', true);
       return;
     }
     
@@ -233,15 +272,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Colab form
+  // Colab form (similar)
   const f3 = document.getElementById('form-colab');
   if (f3) f3.addEventListener('submit', async e => {
     e.preventDefault();
     const nome = document.getElementById('colab-nome').value;
     const dia = parseInt(document.getElementById('colab-dia').value);
     
-    if (!nome || !dia) {
-      showToast('Preencha todos os campos.', true);
+    if (!nome || isNaN(dia) || dia < 1 || dia > 31) {
+      showToast('Preencha nome e dia válido.', true);
       return;
     }
     
@@ -275,15 +314,13 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// --- Exportações globais ---
+// Exportações globais
 window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
+window.carregarResumo = carregarResumo;  // Adicionado para resumo
 window.editarDespesa = editarDespesa;
 window.editarRenda = editarRenda;
 window.editarColaborador = editarColaborador;
-window.confirmarExclusao = confirmarExclusao;
-window.showToast = showToast;
-window.abrirModal = abrirModal;
-window.fecharModal = fecharModal;
+window.confirmarExclusao = confirmarExclus
