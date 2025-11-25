@@ -1,9 +1,9 @@
-// js/crud.js - Lógica de API, utilitários e CRUD para despesas, rendas e colaboradores
+// js/crud.js - Lógica de API, utilitários e CRUD
 
-// Função de fetch autenticada com melhorias
 async function fetchAuth(url, options = {}) {
   const token = localStorage.getItem('token');
-  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com'; // ← ESPAÇOS REMOVIDOS
+  // ✅ URL corrigida (sem espaços)
+  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const config = {
@@ -18,13 +18,8 @@ async function fetchAuth(url, options = {}) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Timeout para evitar hangs
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s
-
   try {
-    const response = await fetch(fullUrl, { ...config, signal: controller.signal });
-    clearTimeout(timeoutId);
+    const response = await fetch(fullUrl, config);
     
     if (response.status === 401) {
       localStorage.removeItem('token');
@@ -39,13 +34,12 @@ async function fetchAuth(url, options = {}) {
     
     return await response.json();
   } catch (error) {
-    if (error.name === 'AbortError') throw new Error('Requisição timeout');
     console.error('Erro na requisição:', error);
     throw error;
   }
 }
 
-// Utilitários
+// --- Utilitários ---
 function formatDateBR(dateStr) {
   if (!dateStr) return '';
   const [yyyy, mm, dd] = dateStr.split('-');
@@ -63,10 +57,7 @@ function formatCurrency(value) {
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   const msg = document.getElementById('toast-message');
-  if (!toast || !msg) {
-    console.warn('Elementos de toast não encontrados.');
-    return;
-  }
+  if (!toast || !msg) return;
   msg.textContent = message;
   toast.className = `fixed bottom-4 right-4 flex items-center p-4 text-sm font-normal rounded-lg shadow ${
     isError ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-800' : 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-800'
@@ -91,12 +82,12 @@ function fecharModal(id) {
   }
 }
 
-// Estado
+// --- Estado ---
 let currentDeleteId = null;
 let currentDeleteEndpoint = null;
 let listaColaboradores = [];
 
-// Funções principais
+// --- Funções principais ---
 async function carregarListaColaboradores() {
   try {
     const data = await fetchAuth('/api/colaboradores');
@@ -123,7 +114,6 @@ async function carregarDespesas(mes = null) {
     
     const tbody = document.getElementById('despesas-tbody-desktop');
     const cards = document.getElementById('despesas-cards');
-    
     const emptyMsg = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Nenhuma despesa.</td></tr>';
     const emptyCards = '<p class="text-center text-gray-500">Nenhuma despesa.</p>';
     
@@ -151,10 +141,8 @@ async function carregarRendas(mes = null) {
     const url = mes ? `/api/rendas?mes=${mes}` : '/api/rendas';
     const data = await fetchAuth(url);
     const rendas = Array.isArray(data) ? data : (data.rendas || []);
-    
     const tbody = document.getElementById('rendas-tbody');
     if (!tbody) return;
-    
     tbody.innerHTML = rendas.length ? rendas.map(r => `
       <tr><td>${r.nome}</td><td>${r.mes_ano}</td><td class="text-green-600 font-semibold">${formatCurrency(r.valor)}</td><td><button onclick="editarRenda(${r.id})" class="text-blue-600">Editar</button> <button onclick="confirmarExclusao(${r.id}, 'rendas')" class="text-red-600">Excluir</button></td></tr>
     `).join('') : '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">Nenhuma renda.</td></tr>';
@@ -168,7 +156,6 @@ async function carregarColaboradores() {
     await carregarListaColaboradores();
     const tbody = document.getElementById('colabs-tbody');
     if (!tbody) return;
-    
     tbody.innerHTML = listaColaboradores.length ? listaColaboradores.map(c => `
       <tr><td>${c.nome}</td><td>Dia ${c.dia_fechamento}</td><td><button onclick="editarColaborador(${c.id})" class="text-blue-600">Editar</button> <button onclick="confirmarExclusao(${c.id}, 'colaboradores')" class="text-red-600">Excluir</button></td></tr>
     `).join('') : '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Nenhum colaborador.</td></tr>';
@@ -177,34 +164,8 @@ async function carregarColaboradores() {
   }
 }
 
-// Função para resumo (básica - expanda com gráficos se necessário)
-async function carregarResumo(mes) {
-  try {
-    const [despesasData, rendasData] = await Promise.all([
-      fetchAuth(`/api/despesas?mes_vigente=${mes}`),
-      fetchAuth(`/api/rendas?mes=${mes}`)
-    ]);
-    const totalDespesas = (Array.isArray(despesasData) ? despesasData : despesasData.despesas || []).reduce((sum, d) => sum + (d.valor || 0), 0);
-    const totalRendas = (Array.isArray(rendasData) ? rendasData : rendasData.rendas || []).reduce((sum, r) => sum + (r.valor || 0), 0);
-    const saldo = totalRendas - totalDespesas;
-    
-    const content = document.getElementById('resumo-content');
-    if (content) {
-      content.innerHTML = `
-        <p>Total Despesas: ${formatCurrency(totalDespesas)}</p>
-        <p>Total Rendas: ${formatCurrency(totalRendas)}</p>
-        <p>Saldo: ${formatCurrency(saldo)} (${saldo >= 0 ? 'Positivo' : 'Negativo'})</p>
-      `;
-    }
-  } catch (err) {
-    showToast('Erro ao carregar resumo.', true);
-  }
-}
-
-// Edição (placeholders - implemente modais completas)
-function editarDespesa(id) { 
-  showToast('Edição em desenvolvimento. Use API para buscar dados do ID.');
-}
+// --- Edição/Exclusão ---
+function editarDespesa(id) { showToast('Edição em desenvolvimento.'); }
 function editarRenda(id) { showToast('Edição em desenvolvimento.'); }
 function editarColaborador(id) { showToast('Edição em desenvolvimento.'); }
 
@@ -214,7 +175,7 @@ function confirmarExclusao(id, tipo) {
   abrirModal('deleteModal');
 }
 
-// Eventos (formulários com validações)
+// --- Eventos ---
 document.addEventListener('DOMContentLoaded', function() {
   // Despesa form
   const f1 = document.getElementById('form-despesa');
@@ -226,12 +187,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const tipo = document.getElementById('despesa-tipo').value;
     const colab = parseInt(document.getElementById('despesa-colab').value);
     const cat = document.getElementById('despesa-categoria').value;
-    
     if (!data || !descricao || isNaN(valor) || valor <= 0 || !tipo || !colab || !cat) {
       showToast('Preencha todos os campos corretamente.', true);
       return;
     }
-    
     try {
       await fetchAuth('/api/despesas', { method: 'POST', body: JSON.stringify({
         data_compra: data, descricao, valor, tipo_pg: tipo, colaborador_id: colab, categoria: cat
@@ -245,19 +204,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Renda form (similar, com validações)
+  // Renda form
   const f2 = document.getElementById('form-renda');
   if (f2) f2.addEventListener('submit', async e => {
     e.preventDefault();
     const colab = parseInt(document.getElementById('renda-colab').value);
     const mes = document.getElementById('renda-mes').value;
     const valor = parseFloat(document.getElementById('renda-valor').value);
-    
     if (!colab || !mes || isNaN(valor) || valor <= 0) {
       showToast('Preencha todos os campos corretamente.', true);
       return;
     }
-    
     try {
       await fetchAuth('/api/rendas', { method: 'POST', body: JSON.stringify({
         colaborador_id: colab, mes_ano: mes, valor
@@ -271,18 +228,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Colab form (similar)
+  // Colab form
   const f3 = document.getElementById('form-colab');
   if (f3) f3.addEventListener('submit', async e => {
     e.preventDefault();
     const nome = document.getElementById('colab-nome').value;
     const dia = parseInt(document.getElementById('colab-dia').value);
-    
     if (!nome || isNaN(dia) || dia < 1 || dia > 31) {
       showToast('Preencha nome e dia válido.', true);
       return;
     }
-    
     try {
       await fetchAuth('/api/colaboradores', { method: 'POST', body: JSON.stringify({
         nome, dia_fechamento: dia
@@ -313,12 +268,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Exportações globais
+// --- Exportações globais ---
 window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
-window.carregarResumo = carregarResumo;
 window.editarDespesa = editarDespesa;
 window.editarRenda = editarRenda;
 window.editarColaborador = editarColaborador;
