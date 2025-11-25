@@ -109,7 +109,7 @@ async function carregarListaColaboradores() {
 async function carregarDespesas(mes = null) {
   console.log('🔍 Chamando carregarDespesas para mês:', mes);
   try {
-    const url = mes ? `/api/despesas?mes_vigente=${mes}` : '/api/despesas';
+    const url = mes ? `/api/despesas/${mes}` : '/api/despesas';
     const data = await fetchAuth(url);
     const despesas = Array.isArray(data) ? data : (data.despesas || []);
     console.log('✅ Despesas carregadas:', despesas.length);
@@ -142,7 +142,7 @@ async function carregarDespesas(mes = null) {
 async function carregarRendas(mes = null) {
   console.log('🔍 Chamando carregarRendas para mês:', mes);
   try {
-    const url = mes ? `/api/rendas?mes=${mes}` : '/api/rendas';
+    const url = mes ? `/api/rendas/${mes}` : '/api/rendas';
     const data = await fetchAuth(url);
     const rendas = Array.isArray(data) ? data : (data.rendas || []);
     console.log('✅ Rendas carregadas:', rendas.length);
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function carregarResumo(mes = null) {
   console.log('🔍 Chamando carregarResumo para mês:', mes);
   try {
-    const url = mes ? `/api/resumo?mes=${mes}` : '/api/resumo';
+    const url = mes ? `/api/resumo/{mes}` : '/api/resumo';
     const data = await fetchAuth(url);
     console.log('✅ Resumo carregado:', data);
 
