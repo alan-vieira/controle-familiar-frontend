@@ -3,7 +3,7 @@
 // Função de fetch autenticada com melhorias
 async function fetchAuth(url, options = {}) {
   const token = localStorage.getItem('token');
-  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
+  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com'; // ← ESPAÇOS REMOVIDOS
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const config = {
@@ -203,7 +203,6 @@ async function carregarResumo(mes) {
 
 // Edição (placeholders - implemente modais completas)
 function editarDespesa(id) { 
-  // Exemplo: Abrir modal e preencher com dados
   showToast('Edição em desenvolvimento. Use API para buscar dados do ID.');
 }
 function editarRenda(id) { showToast('Edição em desenvolvimento.'); }
@@ -319,8 +318,11 @@ window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
-window.carregarResumo = carregarResumo;  // Adicionado para resumo
+window.carregarResumo = carregarResumo;
 window.editarDespesa = editarDespesa;
 window.editarRenda = editarRenda;
 window.editarColaborador = editarColaborador;
-window.confirmarExclusao = confirmarExclus
+window.confirmarExclusao = confirmarExclusao;
+window.showToast = showToast;
+window.abrirModal = abrirModal;
+window.fecharModal = fecharModal;

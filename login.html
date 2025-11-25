@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - Controle Financeiro Familiar</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CDN corrigido (sem espaços) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' };</script>
 </head>
@@ -46,6 +47,7 @@
       errorDiv.classList.add('hidden');
 
       try {
+        // ✅ URL corrigida (sem espaços)
         const response = await fetch('https://controle-familiar.onrender.com/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

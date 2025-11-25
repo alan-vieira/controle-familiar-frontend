@@ -270,13 +270,8 @@ input::placeholder {
   }
 }
 
-.text-red-600 {
-  font-weight: 600;
-}
-
-.text-green-600 {
-  font-weight: 600;
-}
+/* ✅ REMOVIDO: .text-red-600 e .text-green-600 — já existem no Tailwind */
+/* ✅ REMOVIDO: .shadow-md e .shadow-lg — já existem no Tailwind */
 
 .categoria-badge {
   display: inline-block;
@@ -323,14 +318,6 @@ input::placeholder {
   .empty-state h3 {
     color: #e5e7eb;
   }
-}
-
-.shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .container {
