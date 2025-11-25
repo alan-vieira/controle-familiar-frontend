@@ -1,6 +1,6 @@
 async function fetchAuth(url, options = {}) {
   const token = localStorage.getItem('token');
-  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
+  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com'; // ← ESPAÇOS REMOVIDOS
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const config = {

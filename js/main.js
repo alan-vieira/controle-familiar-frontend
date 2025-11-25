@@ -4,7 +4,7 @@ async function verificarAutenticacao() {
   const token = localStorage.getItem('token');
   if (!token) return false;
   
-  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com';
+  const baseUrl = window.CONFIG?.API_BASE_URL || 'https://controle-familiar.onrender.com'; // ← ESPAÇOS REMOVIDOS
   try {
     const res = await fetch(`${baseUrl}/api/auth/status`, {
       headers: { 'Authorization': `Bearer ${token}` }

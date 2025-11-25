@@ -1,3 +1,4 @@
+// js/config.js
 window.CONFIG = {
   API_BASE_URL: 'https://controle-familiar.onrender.com'
 };
