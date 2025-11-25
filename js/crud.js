@@ -268,11 +268,74 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+ // Resumo button
+  const resumoBtn = document.getElementById('btn-carregar-resumo');
+  if (resumoBtn) resumoBtn.addEventListener('click', () => {
+    const mes = document.getElementById('resumo-mes')?.value;
+    carregarResumo(mes);
+  });
+});
+
+// --- Funções de Resumo Financeiro ---
+async function carregarResumo(mes = null) {
+  try {
+    const url = mes ? `/api/resumo?mes=${mes}` : '/api/resumo';
+    const data = await fetchAuth(url);
+
+    const resumoContent = document.getElementById('resumo-content');
+    if (!resumoContent) return;
+
+    if (data && (data.total_despesas !== undefined || data.total_rendas !== undefined)) {
+      resumoContent.innerHTML = `
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-gray-600 p-4 rounded-lg shadow">
+              <h3 class="font-semibold text-gray-700 dark:text-gray-200">Total de Rendas</h3>
+              <p class="text-2xl font-bold text-green-600">${formatCurrency(data.total_rendas || 0)}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-600 p-4 rounded-lg shadow">
+              <h3 class="font-semibold text-gray-700 dark:text-gray-200">Total de Despesas</h3>
+              <p class="text-2xl font-bold text-red-600">${formatCurrency(data.total_despesas || 0)}</p>
+            </div>
+            <div class="bg-white dark:bg-gray-600 p-4 rounded-lg shadow">
+              <h3 class="font-semibold text-gray-700 dark:text-gray-200">Saldo</h3>
+              <p class="text-2xl font-bold ${(data.total_rendas - data.total_despesas) >= 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency((data.total_rendas || 0) - (data.total_despesas || 0))}</p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <h3 class="font-semibold text-lg text-gray-800 dark:text-gray-200">Despesas por Categoria</h3>
+            <div class="mt-2 space-y-2">
+              ${Object.entries(data.despesas_por_categoria || {}).map(([categoria, valor]) =>
+                `<div class="flex justify-between border-b pb-1">
+                  <span>${formatCategoria(categoria)}</span>
+                  <span class="font-medium text-red-600">${formatCurrency(valor)}</span>
+                </div>`
+              ).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      resumoContent.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Nenhum dado disponível para o período selecionado.</p>';
+    }
+  } catch (err) {
+    console.error('Erro ao carregar resumo:', err);
+    const resumoContent = document.getElementById('resumo-content');
+    if (resumoContent) {
+      resumoContent.innerHTML = '<p class="text-red-500">Erro ao carregar resumo financeiro.</p>';
+    }
+    showToast('Erro ao carregar resumo.', true);
+  }
+}
+
+
 // --- Exportações globais ---
 window.carregarListaColaboradores = carregarListaColaboradores;
 window.carregarDespesas = carregarDespesas;
 window.carregarRendas = carregarRendas;
 window.carregarColaboradores = carregarColaboradores;
+window.carregarResumo = carregarResumo;
 window.editarDespesa = editarDespesa;
 window.editarRenda = editarRenda;
 window.editarColaborador = editarColaborador;
