@@ -26,3 +26,9 @@ export const checkAuthStatus = async () => {
     return { logged_in: false };
   }
 };
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  // Redireciona para login
+  window.location.href = '/login';
+};
