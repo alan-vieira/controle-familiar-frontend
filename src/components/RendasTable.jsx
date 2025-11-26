@@ -81,7 +81,7 @@ export default function RendasTable({ mesAno }) {
             <tr key={r.id} style={{ borderBottom: '1px solid #eee' }}>
               <td style={{ padding: '12px' }}>{r.colaborador_nome}</td>
               <td style={{ padding: '12px' }}>{r.mes_ano}</td>
-              <td style={{ padding: '12px', textAlign: 'right', color: 'green' }}>R$ {r.valor?.toFixed(2)}</td>
+              <td style={{ padding: '12px', textAlign: 'right', color: 'green' }}>R$ {parseFloat(r.valor || 0).toFixed(2)}</td>
               <td style={{ padding: '12px', textAlign: 'center' }}>
                 <button onClick={() => handleEdit(r)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#007bff' }} title="Editar">✏️</button>
                 <button onClick={() => handleDeleteClick(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'red' }} title="Excluir">🗑️</button>
