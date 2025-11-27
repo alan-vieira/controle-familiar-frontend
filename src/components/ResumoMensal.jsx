@@ -1,5 +1,4 @@
-// src/components/ResumoMensal.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export default function ResumoMensal() {
@@ -52,80 +51,42 @@ export default function ResumoMensal() {
   if (loading) return <p>Carregando resumo...</p>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Mês/Ano</label>
-          <input
-            type="month"
-            value={mesAno}
-            onChange={(e) => setMesAno(e.target.value)}
-            className="border rounded px-3 py-2 w-full sm:w-auto"
-          />
-        </div>
-        <button
-          onClick={handleCarregar}
-          disabled={loading}
-          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
+    <div>
+      <h3>Resumo Mensal</h3>
+      <div style={{ marginBottom: '16px' }}>
+        <label>Mês: </label>
+        <input type="month" value={mes} onChange={(e) => setMes(e.target.value)} style={{ padding: '6px', marginLeft: '8px' }} />
+        <button onClick={handleCarregar} disabled={loading} style={{ marginLeft: '16px', padding: '6px 12px', backgroundColor: '#1e61d8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           {loading ? 'Carregando...' : 'Carregar Resumo'}
         </button>
       </div>
-
-      {error && (
-        <div className="p-4 bg-yellow-100 border border-yellow-300 rounded text-yellow-800">
-          {error}
-        </div>
-      )}
-
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {resumo && (
-        <div className="space-y-6">
-          {/* Totais */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600">Total de Despesas</p>
-              <p className="text-2xl font-bold text-red-600">R$ {Number(resumo.total_despesas || 0).toFixed(2)}</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600">Total de Rendas</p>
-              <p className="text-2xl font-bold text-green-600">R$ {Number(resumo.total_renda || 0).toFixed(2)}</p>
-            </div>
-            <div className={`p-4 rounded-lg text-center ${resumo.saldo_total >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-              <p className="text-sm text-gray-600">Saldo do Mês</p>
-              <p className={`text-2xl font-bold ${resumo.saldo_total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                R$ {Number(resumo.saldo_total || 0).toFixed(2)}
-              </p>
-            </div>
+        <div style={{ marginTop: '20px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <strong>Divisão do mês:</strong>
+            {divisaoStatus?.paga ? (
+              <>
+                <span style={{ color: 'green', fontWeight: 'bold' }}> ✅ Paga</span>
+                <button onClick={handleDesmarcarComoPago} style={{ marginLeft: '16px', padding: '4px 8px', background: 'none', border: '1px solid #ccc', cursor: 'pointer' }}>Desmarcar como paga</button>
+              </>
+            ) : (
+              <>
+                <span style={{ color: 'red', fontWeight: 'bold' }}> ⚠️ Pendente</span>
+                <button onClick={handleMarcarComoPago} style={{ marginLeft: '16px', padding: '4px 8px', backgroundColor: '#28a745', color: 'white', border: 'none', cursor: 'pointer' }}>Marcar como paga</button>
+              </>
+            )}
           </div>
-
-          {/* Divisão por colaborador */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">Divisão do mês:</h3>
-            <div className="space-y-4">
-              {resumo.colaboradores.map((c) => (
-                <div key={c.id} className="bg-white rounded-lg shadow p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-bold text-lg">{c.nome}</h4>
-                      <p className="text-sm text-gray-600">Renda: R$ {c.renda.toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">Deve pagar: R$ {c.deve_pagar.toFixed(2)}</p>
-                      <p className="text-sm text-gray-600">Pagou: R$ {c.pagou.toFixed(2)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-bold ${c.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        Saldo: R$ {c.saldo.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-sm">
-                    <span className={`font-medium ${c.status === 'positivo' ? 'text-green-600' : 'text-red-600'}`}>
-                      {c.status === 'positivo' ? 'Pendente' : 'Pendente'}
-                    </span>
-                    <button className="text-blue-600 hover:text-blue-800">Marcar como paga</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+            {resumo.colaboradores.map((c) => (
+              <div key={c.id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px', width: 'calc(50% - 10px)', minWidth: '300px', backgroundColor: '#f9f9f9' }}>
+                <h4>{c.nome}</h4>
+                <p><strong>Renda:</strong> R$ {c.renda.toFixed(2)}</p>
+                <p><strong>Deve pagar:</strong> R$ {c.deve_pagar.toFixed(2)}</p>
+                <p><strong>Pagou:</strong> R$ {c.pagou.toFixed(2)}</p>
+                <p style={{ fontWeight: 'bold', color: c.saldo >= 0 ? 'green' : 'red' }}><strong>Saldo:</strong> R$ {c.saldo.toFixed(2)}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
