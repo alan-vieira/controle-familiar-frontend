@@ -58,7 +58,7 @@ export default function RendasTable({ mesAno }) {
           ) : (
             rendas.map((r) => (
               <tr key={r.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">{r.colaborador_nome}</td>
+                <td className="px-4 py-3">{r.nome}</td>
                 <td className="px-4 py-3">{r.mes_ano}</td>
                 <td className="px-4 py-3 text-right text-green-600">
                   R$ {Number(r.valor || 0).toFixed(2)}
