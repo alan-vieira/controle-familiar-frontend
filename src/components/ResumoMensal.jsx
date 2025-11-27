@@ -3,30 +3,53 @@ import { useState } from 'react';
 import { api } from '../services/api';
 
 export default function ResumoMensal() {
+  const [mes, setMes] = useState('');
   const [resumo, setResumo] = useState(null);
+  const [divisaoStatus, setDivisaoStatus] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [mesAno, setMesAno] = useState(new Date().toISOString().slice(0, 7));
   const [error, setError] = useState('');
 
   const handleCarregar = async () => {
-    setError('');
+    if (!mes) {
+      setError('Selecione um mês.');
+      return;
+    }
+
     setLoading(true);
+    setError('');
     try {
-      const data = await api(`resumo?mes_vigente=${mesAno}`);
-      setResumo(data);
+      const resumoData = await api(`resumo/${mes}`);
+      const divisaoData = await api(`divisao/${mes}`);
+      setResumo(resumoData);
+      setDivisaoStatus(divisaoData);
     } catch (err) {
-      if (err.message.includes('Rendas não registradas')) {
-        setError('⚠️ Rendas não registradas para: ' + err.message.split(': ')[1]);
-      } else if (err.message.includes('Renda total zero')) {
-        setError('⚠️ Nenhuma renda registrada para este mês.');
-      } else {
-        setError('Erro ao carregar resumo: ' + err.message);
-      }
+      setError(err.message || 'Erro ao carregar resumo');
       setResumo(null);
+      setDivisaoStatus(null);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleMarcarComoPago = async () => {
+    try {
+      const data = await api(`divisao/${mes}/marcar-pago`, { method: 'POST', body: JSON.stringify({}) });
+      setDivisaoStatus(data);
+    } catch (err) {
+      alert('Erro ao marcar como pago: ' + err.message);
+    }
+  };
+
+  const handleDesmarcarComoPago = async () => {
+    try {
+      const data = await api(`divisao/${mes}/desmarcar-pago`, { method: 'POST' });
+      setDivisaoStatus(data);
+    } catch (err) {
+      alert('Erro ao desmarcar como pago: ' + err.message);
+    }
+  };
+
+  if (loading) return <p>Carregando resumo...</p>;
 
   return (
     <div className="space-y-6">
