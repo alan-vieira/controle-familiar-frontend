@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// src/components/ResumoMensal.jsx
+import { useState } from 'react';
 import { api } from '../services/api';
 
 export default function ResumoMensal() {
@@ -48,43 +49,68 @@ export default function ResumoMensal() {
     }
   };
 
-  if (loading) return <p>Carregando resumo...</p>;
+  if (loading) return <p className="text-center py-4 text-gray-600">Carregando resumo...</p>;
 
   return (
-    <div>
-      <h3>Resumo Mensal</h3>
-      <div style={{ marginBottom: '16px' }}>
-        <label>Mês: </label>
-        <input type="month" value={mes} onChange={(e) => setMes(e.target.value)} style={{ padding: '6px', marginLeft: '8px' }} />
-        <button onClick={handleCarregar} disabled={loading} style={{ marginLeft: '16px', padding: '6px 12px', backgroundColor: '#1e61d8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Mês/Ano</label>
+          <input
+            type="month"
+            value={mes}
+            onChange={(e) => setMes(e.target.value)}
+            className="border rounded px-3 py-2 w-full sm:w-auto"
+          />
+        </div>
+        <button
+          onClick={handleCarregar}
+          disabled={loading}
+          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
           {loading ? 'Carregando...' : 'Carregar Resumo'}
         </button>
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {error && <p className="text-red-600">{error}</p>}
+
       {resumo && (
-        <div style={{ marginTop: '20px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <strong>Divisão do mês:</strong>
+        <div className="space-y-6">
+          <div className="flex items-center flex-wrap gap-2">
+            <strong className="text-gray-800">Divisão do mês:</strong>
             {divisaoStatus?.paga ? (
               <>
-                <span style={{ color: 'green', fontWeight: 'bold' }}> ✅ Paga</span>
-                <button onClick={handleDesmarcarComoPago} style={{ marginLeft: '16px', padding: '4px 8px', background: 'none', border: '1px solid #ccc', cursor: 'pointer' }}>Desmarcar como paga</button>
+                <span className="text-green-600 font-bold">✅ Paga</span>
+                <button
+                  onClick={handleDesmarcarComoPago}
+                  className="ml-2 text-sm text-gray-600 border border-gray-300 rounded px-2 py-1 hover:bg-gray-100"
+                >
+                  Desmarcar como paga
+                </button>
               </>
             ) : (
               <>
-                <span style={{ color: 'red', fontWeight: 'bold' }}> ⚠️ Pendente</span>
-                <button onClick={handleMarcarComoPago} style={{ marginLeft: '16px', padding: '4px 8px', backgroundColor: '#28a745', color: 'white', border: 'none', cursor: 'pointer' }}>Marcar como paga</button>
+                <span className="text-red-600 font-bold">⚠️ Pendente</span>
+                <button
+                  onClick={handleMarcarComoPago}
+                  className="ml-2 text-sm bg-green-600 text-white rounded px-2 py-1 hover:bg-green-700"
+                >
+                  Marcar como paga
+                </button>
               </>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {resumo.colaboradores.map((c) => (
-              <div key={c.id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px', width: 'calc(50% - 10px)', minWidth: '300px', backgroundColor: '#f9f9f9' }}>
-                <h4>{c.nome}</h4>
+              <div key={c.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h4 className="font-bold text-lg">{c.nome}</h4>
                 <p><strong>Renda:</strong> R$ {c.renda.toFixed(2)}</p>
                 <p><strong>Deve pagar:</strong> R$ {c.deve_pagar.toFixed(2)}</p>
                 <p><strong>Pagou:</strong> R$ {c.pagou.toFixed(2)}</p>
-                <p style={{ fontWeight: 'bold', color: c.saldo >= 0 ? 'green' : 'red' }}><strong>Saldo:</strong> R$ {c.saldo.toFixed(2)}</p>
+                <p className={`font-bold ${c.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <strong>Saldo:</strong> R$ {c.saldo.toFixed(2)}
+                </p>
               </div>
             ))}
           </div>

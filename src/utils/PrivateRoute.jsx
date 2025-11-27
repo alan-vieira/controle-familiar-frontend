@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function PrivateRoute({ children }) {
+function PrivateRoute({ children }) {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -13,8 +13,10 @@ export default function PrivateRoute({ children }) {
   }, [token, navigate]);
 
   if (!token) {
-    return null; // ou um loading
+    return null;
   }
 
   return children;
 }
+
+export default PrivateRoute;

@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import { useState } from 'react';
 import Header from '../components/Header';
 import Navigation from '../components/Navigation';
@@ -11,19 +12,19 @@ export default function Dashboard() {
   const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <div style={{ padding: '20px' }}>
+      <main className="flex-1 p-4 md:p-6">
         {['Despesas', 'Rendas'].includes(activeTab) && (
-          <div style={{ marginBottom: '20px' }}>
-            <label>Mês: </label>
+          <div className="mb-6 flex flex-col sm:flex-row items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Mês:</label>
             <input
               type="month"
               value={mesSelecionado}
               onChange={(e) => setMesSelecionado(e.target.value)}
-              style={{ padding: '6px', marginLeft: '8px' }}
+              className="border rounded px-3 py-1.5 text-sm"
             />
           </div>
         )}
@@ -32,7 +33,7 @@ export default function Dashboard() {
         {activeTab === 'Rendas' && <RendasTable mesAno={mesSelecionado} />}
         {activeTab === 'Colaboradores' && <ColaboradoresTable />}
         {activeTab === 'Resumo' && <ResumoMensal />}
-      </div>
+      </main>
     </div>
   );
 }
