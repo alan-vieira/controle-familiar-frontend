@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // 👈 adicione useEffect
 import Header from '../components/Header';
 import Navigation from '../components/Navigation';
 import DespesasTable from '../components/DespesasTable';
@@ -9,31 +9,38 @@ import ResumoMensal from '../components/ResumoMensal';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Despesas');
-  const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7));
+  const [mesSelecionado, setMesSelecionado] = useState('');
+
+  // 👇 Define o mês atual após a montagem
+  useEffect(() => {
+    const now = new Date();
+    const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    setMesSelecionado(mesAtual);
+  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div>
       <Header />
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="flex-1 p-4 md:p-6">
+      <div className="p-4 md:p-6">
         {['Despesas', 'Rendas'].includes(activeTab) && (
-          <div className="mb-6 flex flex-col sm:flex-row items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Mês:</label>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Mês:</label>
             <input
               type="month"
               value={mesSelecionado}
               onChange={(e) => setMesSelecionado(e.target.value)}
-              className="border rounded px-3 py-1.5 text-sm"
+              className="border rounded px-3 py-2"
             />
           </div>
         )}
 
-        {activeTab === 'Despesas' && <DespesasTable mesAno={mesSelecionado} />}
-        {activeTab === 'Rendas' && <RendasTable mesAno={mesSelecionado} />}
+        {activeTab === 'Despesas' && mesSelecionado && <DespesasTable mesAno={mesSelecionado} />}
+        {activeTab === 'Rendas' && mesSelecionado && <RendasTable mesAno={mesSelecionado} />}
         {activeTab === 'Colaboradores' && <ColaboradoresTable />}
         {activeTab === 'Resumo' && <ResumoMensal />}
-      </main>
+      </div>
     </div>
   );
 }
