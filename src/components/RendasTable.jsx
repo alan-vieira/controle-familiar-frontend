@@ -15,7 +15,7 @@ export default function RendasTable({ mesAno }) {
     const load = async () => {
       if (!mesAno) return;
       try {
-        // 👈 Corrigido: usar 'mes_vigente' para consistência
+        // 👈 Corrigido: usar 'mes_vigente' para consistência com o backend
         const data = await api(`rendas?mes_vigente=${mesAno}`);
         setRendas(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -38,7 +38,6 @@ export default function RendasTable({ mesAno }) {
 
   const handleDeleteConfirm = async () => {
     try {
-      // 👈 Corrigido: usar o serviço 'api' (já inclui token e URL base)
       await api(`rendas/${showDeleteConfirm}`, { method: 'DELETE' });
       setRendas(rendas.filter(r => r.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
@@ -60,17 +59,8 @@ export default function RendasTable({ mesAno }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
-        >
-          + Registrar Renda
-        </button>
-      </div>
-
-      {/* Desktop: Tabela */}
-      <div className="hidden md:block overflow-x-auto rounded border">
+      {/* Tabela única, sem botão "Registrar Renda" acima */}
+      <div className="overflow-x-auto rounded border">
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100">
             <tr>
@@ -94,29 +84,6 @@ export default function RendasTable({ mesAno }) {
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Mobile: Cards */}
-      <div className="md:hidden space-y-4">
-        {rendas.length > 0 ? (
-          rendas.map((r) => (
-            <div key={r.id} className="border rounded-lg p-4 shadow-sm">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-semibold text-base">{r.colaborador_nome}</p>
-                  <p className="text-sm text-gray-500">{r.mes_ano}</p>
-                </div>
-                <p className="text-green-600 font-bold">R$ {Number(r.valor || 0).toFixed(2)}</p>
-              </div>
-              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
-                <button onClick={() => handleEdit(r)} className="text-blue-600 text-sm">✏️ Editar</button>
-                <button onClick={() => handleDeleteClick(r.id)} className="text-red-600 text-sm">🗑️ Excluir</button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-500">Nenhuma renda registrada.</p>
-        )}
       </div>
 
       {showForm && (
