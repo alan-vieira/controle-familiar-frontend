@@ -20,7 +20,7 @@ export default function RendasTable({ mesAno }) {
       setLoading(true);
       try {
         // ✅ Use exatamente o mesmo parâmetro que o backend espera
-        const data = await api(`rendas?mes_vigente=${mesAno}`);
+        const data = await api(`rendas?mes=${mesAno}`);
         setRendas(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Erro ao carregar rendas:', err);
