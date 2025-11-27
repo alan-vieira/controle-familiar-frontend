@@ -15,6 +15,7 @@ export default function RendasTable({ mesAno }) {
     const load = async () => {
       if (!mesAno) return;
       try {
+        // 👈 Corrigido: usar 'mes_vigente' para consistência
         const data = await api(`rendas?mes_vigente=${mesAno}`);
         setRendas(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -37,6 +38,7 @@ export default function RendasTable({ mesAno }) {
 
   const handleDeleteConfirm = async () => {
     try {
+      // 👈 Corrigido: usar o serviço 'api' (já inclui token e URL base)
       await api(`rendas/${showDeleteConfirm}`, { method: 'DELETE' });
       setRendas(rendas.filter(r => r.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
@@ -63,17 +65,17 @@ export default function RendasTable({ mesAno }) {
           onClick={() => { setEditing(null); setShowForm(true); }}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
         >
-          + Nova Renda
+          + Registrar Renda
         </button>
       </div>
 
-      {/* Desktop */}
+      {/* Desktop: Tabela */}
       <div className="hidden md:block overflow-x-auto rounded border">
         <table className="min-w-full text-sm text-left">
           <thead className="bg-gray-100">
             <tr>
-              <th className="px-4 py-3 font-semibold">DATA</th>
-              <th className="px-4 py-3 font-semibold">DESCRIÇÃO</th>
+              <th className="px-4 py-3 font-semibold">COLABORADOR</th>
+              <th className="px-4 py-3 font-semibold">MÊS/ANO</th>
               <th className="px-4 py-3 font-semibold text-right">VALOR</th>
               <th className="px-4 py-3 font-semibold text-center">AÇÕES</th>
             </tr>
@@ -81,12 +83,12 @@ export default function RendasTable({ mesAno }) {
           <tbody className="divide-y divide-gray-200">
             {rendas.map((r) => (
               <tr key={r.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">{r.data_recebimento}</td>
-                <td className="px-4 py-3">{r.descricao}</td>
+                <td className="px-4 py-3">{r.colaborador_nome}</td>
+                <td className="px-4 py-3">{r.mes_ano}</td>
                 <td className="px-4 py-3 text-right text-green-600">R$ {Number(r.valor || 0).toFixed(2)}</td>
                 <td className="px-4 py-3 text-center space-x-3">
-                  <button onClick={() => handleEdit(r)} className="text-blue-600 hover:text-blue-800">✏️</button>
-                  <button onClick={() => handleDeleteClick(r.id)} className="text-red-600 hover:text-red-800">🗑️</button>
+                  <button onClick={() => handleEdit(r)} className="text-blue-600 hover:text-blue-800" title="Editar">✏️</button>
+                  <button onClick={() => handleDeleteClick(r.id)} className="text-red-600 hover:text-red-800" title="Excluir">🗑️</button>
                 </td>
               </tr>
             ))}
@@ -94,15 +96,15 @@ export default function RendasTable({ mesAno }) {
         </table>
       </div>
 
-      {/* Mobile */}
+      {/* Mobile: Cards */}
       <div className="md:hidden space-y-4">
         {rendas.length > 0 ? (
           rendas.map((r) => (
             <div key={r.id} className="border rounded-lg p-4 shadow-sm">
               <div className="flex justify-between">
                 <div>
-                  <p className="font-semibold text-base">{r.descricao}</p>
-                  <p className="text-sm text-gray-500">{r.data_recebimento}</p>
+                  <p className="font-semibold text-base">{r.colaborador_nome}</p>
+                  <p className="text-sm text-gray-500">{r.mes_ano}</p>
                 </div>
                 <p className="text-green-600 font-bold">R$ {Number(r.valor || 0).toFixed(2)}</p>
               </div>
