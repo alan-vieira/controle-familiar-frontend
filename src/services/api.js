@@ -1,3 +1,4 @@
+// src/services/api.js
 export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
   const BASE_URL = 'https://controle-familiar.onrender.com/api';
@@ -14,16 +15,31 @@ export const api = async (endpoint, options = {}) => {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}/${endpoint}`, config);
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}/${endpoint}`, config);
+  } catch (err) {
+    throw new Error('Sem conexão com o servidor');
+  }
 
   if (!res.ok) {
     if (res.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return;
     }
-    const error = await res.json().catch(() => ({}));
-    throw new Error(error.error || `Erro ${res.status}`);
+
+    let errMsg = `Erro ${res.status}`;
+    try {
+      const json = await res.json();
+      errMsg = json.error || json.message || errMsg;
+    } catch {
+      const text = await res.text();
+      errMsg = text || errMsg;
+    }
+    throw new Error(errMsg);
   }
 
-  return res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : {};
 };

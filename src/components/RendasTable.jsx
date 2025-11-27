@@ -1,3 +1,4 @@
+// src/components/RendasTable.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import RendaForm from './RendaForm';
@@ -12,16 +13,17 @@ export default function RendasTable({ mesAno }) {
 
   useEffect(() => {
     const load = async () => {
+      if (!mesAno) return;
       try {
-        const data = await api(`rendas?mes=${mesAno}`);
-        setRendas(data);
+        const data = await api(`rendas?mes_vigente=${mesAno}`);
+        setRendas(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Erro ao carregar rendas:', err);
       } finally {
         setLoading(false);
       }
     };
-    if (mesAno) load();
+    load();
   }, [mesAno]);
 
   const handleEdit = (renda) => {
@@ -35,11 +37,7 @@ export default function RendasTable({ mesAno }) {
 
   const handleDeleteConfirm = async () => {
     try {
-      const res = await fetch(`https://controle-familiar.onrender.com/api/rendas/${showDeleteConfirm}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (!res.ok) throw new Error('Erro ao excluir');
+      await api(`rendas/${showDeleteConfirm}`, { method: 'DELETE' });
       setRendas(rendas.filter(r => r.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
     } catch (err) {
@@ -48,51 +46,90 @@ export default function RendasTable({ mesAno }) {
   };
 
   const handleSuccess = async () => {
-    const data = await api(`rendas?mes=${mesAno}`);
-    setRendas(data);
+    const data = await api(`rendas?mes_vigente=${mesAno}`);
+    setRendas(Array.isArray(data) ? data : []);
     setShowForm(false);
     setEditing(null);
   };
 
-  if (loading) return <p>Carregando rendas...</p>;
+  if (loading) {
+    return <p className="text-center py-4 text-gray-600">Carregando rendas...</p>;
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
-          style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
         >
-          + Registrar Renda
+          + Nova Renda
         </button>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
-        <thead>
-          <tr style={{ background: '#f5f5f5' }}>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>COLABORADOR</th>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>MÊS/ANO</th>
-            <th style={{ padding: '12px', fontWeight: 'bold', textAlign: 'right' }}>VALOR</th>
-            <th style={{ padding: '12px', fontWeight: 'bold', textAlign: 'center' }}>AÇÕES</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rendas.map((r) => (
-            <tr key={r.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '12px' }}>{r.colaborador_nome}</td>
-              <td style={{ padding: '12px' }}>{r.mes_ano}</td>
-              <td style={{ padding: '12px', textAlign: 'right', color: 'green' }}>R$ {parseFloat(r.valor || 0).toFixed(2)}</td>
-              <td style={{ padding: '12px', textAlign: 'center' }}>
-                <button onClick={() => handleEdit(r)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#007bff' }} title="Editar">✏️</button>
-                <button onClick={() => handleDeleteClick(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'red' }} title="Excluir">🗑️</button>
-              </td>
+      {/* Desktop */}
+      <div className="hidden md:block overflow-x-auto rounded border">
+        <table className="min-w-full text-sm text-left">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-3 font-semibold">DATA</th>
+              <th className="px-4 py-3 font-semibold">DESCRIÇÃO</th>
+              <th className="px-4 py-3 font-semibold text-right">VALOR</th>
+              <th className="px-4 py-3 font-semibold text-center">AÇÕES</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {rendas.map((r) => (
+              <tr key={r.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">{r.data_recebimento}</td>
+                <td className="px-4 py-3">{r.descricao}</td>
+                <td className="px-4 py-3 text-right text-green-600">R$ {Number(r.valor || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-center space-x-3">
+                  <button onClick={() => handleEdit(r)} className="text-blue-600 hover:text-blue-800">✏️</button>
+                  <button onClick={() => handleDeleteClick(r.id)} className="text-red-600 hover:text-red-800">🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {showForm && <RendaForm renda={editing} onClose={() => setShowForm(false)} onSuccess={handleSuccess} />}
-      {showDeleteConfirm && <ConfirmDeleteModal onConfirm={handleDeleteConfirm} onCancel={() => setShowDeleteConfirm(null)} />}
+      {/* Mobile */}
+      <div className="md:hidden space-y-4">
+        {rendas.length > 0 ? (
+          rendas.map((r) => (
+            <div key={r.id} className="border rounded-lg p-4 shadow-sm">
+              <div className="flex justify-between">
+                <div>
+                  <p className="font-semibold text-base">{r.descricao}</p>
+                  <p className="text-sm text-gray-500">{r.data_recebimento}</p>
+                </div>
+                <p className="text-green-600 font-bold">R$ {Number(r.valor || 0).toFixed(2)}</p>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
+                <button onClick={() => handleEdit(r)} className="text-blue-600 text-sm">✏️ Editar</button>
+                <button onClick={() => handleDeleteClick(r.id)} className="text-red-600 text-sm">🗑️ Excluir</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">Nenhuma renda registrada.</p>
+        )}
+      </div>
+
+      {showForm && (
+        <RendaForm
+          renda={editing}
+          onClose={() => setShowForm(false)}
+          onSuccess={handleSuccess}
+        />
+      )}
+      {showDeleteConfirm && (
+        <ConfirmDeleteModal
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteConfirm(null)}
+        />
+      )}
     </div>
   );
 }

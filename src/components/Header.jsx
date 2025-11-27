@@ -1,32 +1,18 @@
 // src/components/Header.jsx
-import { logout } from '../services/auth';
+import { useState } from 'react';
 
 export default function Header() {
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
   return (
-    <header style={{
-      backgroundColor: '#1e61d8',
-      color: 'white',
-      padding: '16px 20px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span>💰</span>
-        <h1 style={{ margin: 0, fontSize: '24px' }}>Controle Financeiro Familiar</h1>
-      </div>
+    <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
+      <h1 className="text-xl font-bold">Controle Familiar</h1>
       <button
-        onClick={logout}
-        style={{
-          background: 'none',
-          border: '1px solid white',
-          color: 'white',
-          padding: '6px 12px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontWeight: 'bold'
-        }}
-        title="Sair"
+        onClick={handleLogout}
+        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
       >
         Sair
       </button>

@@ -1,135 +1,151 @@
+// src/components/DespesaForm.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
-const TIPOS_PG = ['credito', 'debito', 'pix', 'dinheiro', 'outros'];
 const CATEGORIAS = [
-  'moradia', 'alimentacao', 'restaurante_lanche',
-  'casa_utilidades', 'saude', 'transporte', 'lazer_outros'
+  'moradia',
+  'alimentacao',
+  'restaurante_lanche',
+  'casa_utilidades',
+  'saude',
+  'transporte',
+  'lazer_outros'
 ];
 
-export default function DespesaForm({ despesa, onClose, onSuccess }) {
-  const [data, setData] = useState('');
-  const [colaboradorId, setColaboradorId] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [valor, setValor] = useState('');
-  const [tipoPg, setTipoPg] = useState('credito');
-  const [categoria, setCategoria] = useState('');
-  const [colaboradores, setColaboradores] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+const CATEGORIA_LABELS = {
+  moradia: 'Moradia',
+  alimentacao: 'Alimentação',
+  restaurante_lanche: 'Rest./Lanche',
+  casa_utilidades: 'Casa/Util.',
+  saude: 'Saúde',
+  transporte: 'Transporte',
+  lazer_outros: 'Lazer/Outros'
+};
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await api('colaboradores');
-        setColaboradores(data);
-      } catch (err) {
-        console.error('Erro ao carregar colaboradores:', err);
-      }
-    };
-    load();
-  }, []);
+export default function DespesaForm({ despesa, onClose, onSuccess }) {
+  const [formData, setFormData] = useState({
+    data_compra: '',
+    descricao: '',
+    categoria: 'alimentacao',
+    valor: ''
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (despesa) {
-      setData(despesa.data_compra.split('T')[0]);
-      setColaboradorId(despesa.colaborador_id);
-      setDescricao(despesa.descricao);
-      setValor(despesa.valor);
-      setTipoPg(despesa.tipo_pg);
-      setCategoria(despesa.categoria);
+      setFormData({
+        data_compra: despesa.data_compra,
+        descricao: despesa.descricao,
+        categoria: despesa.categoria,
+        valor: despesa.valor
+      });
+    } else {
+      setFormData({
+        data_compra: '',
+        descricao: '',
+        categoria: 'alimentacao',
+        valor: ''
+      });
     }
   }, [despesa]);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
-
     try {
       const payload = {
-        data_compra: `${data}T00:00:00`,
-        descricao,
-        valor: parseFloat(valor),
-        tipo_pg: tipoPg,
-        colaborador_id: parseInt(colaboradorId),
-        categoria
+        ...formData,
+        valor: parseFloat(formData.valor)
       };
-
-      let res;
       if (despesa) {
-        res = await fetch(`https://controle-familiar.onrender.com/api/despesas/${despesa.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-          body: JSON.stringify(payload)
-        });
+        await api(`despesas/${despesa.id}`, { method: 'PUT', body: JSON.stringify(payload) });
       } else {
-        res = await fetch('https://controle-familiar.onrender.com/api/despesas', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-          body: JSON.stringify(payload)
-        });
+        await api('despesas', { method: 'POST', body: JSON.stringify(payload) });
       }
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Erro ao salvar');
-      }
-
       onSuccess();
-      onClose();
-
     } catch (err) {
-      setError(err.message);
+      alert('Erro ao salvar despesa: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', width: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h3>{despesa ? 'Editar Despesa' : 'Nova Despesa'}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px' }}>×</button>
-        </div>
-        {error && <p style={{ color: 'red', marginBottom: '16px' }}>{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Data</label>
-            <input type="date" value={data} onChange={(e) => setData(e.target.value)} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-4">
+          {despesa ? 'Editar Despesa' : 'Nova Despesa'}
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Data da Compra</label>
+            <input
+              type="date"
+              name="data_compra"
+              value={formData.data_compra}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2"
+            />
           </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Colaborador</label>
-            <select value={colaboradorId} onChange={(e) => setColaboradorId(e.target.value)} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
-              <option value="">Selecione...</option>
-              {colaboradores.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+          <div>
+            <label className="block text-sm font-medium mb-1">Descrição</label>
+            <input
+              type="text"
+              name="descricao"
+              value={formData.descricao}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Categoria</label>
+            <select
+              name="categoria"
+              value={formData.categoria}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            >
+              {CATEGORIAS.map(cat => (
+                <option key={cat} value={cat}>{CATEGORIA_LABELS[cat]}</option>
+              ))}
             </select>
           </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Descrição</label>
-            <input type="text" value={descricao} onChange={(e) => setDescricao(e.target.value)} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+          <div>
+            <label className="block text-sm font-medium mb-1">Valor (R$)</label>
+            <input
+              type="number"
+              step="0.01"
+              name="valor"
+              value={formData.valor}
+              onChange={handleChange}
+              required
+              min="0"
+              className="w-full border rounded px-3 py-2"
+            />
           </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Valor (R$)</label>
-            <input type="number" step="0.01" min="0" value={valor} onChange={(e) => setValor(e.target.value)} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+          <div className="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              {loading ? 'Salvando...' : 'Salvar'}
+            </button>
           </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Tipo de Pagamento</label>
-            <select value={tipoPg} onChange={(e) => setTipoPg(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
-              {TIPOS_PG.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-            </select>
-          </div>
-          <div style={{ marginBottom: '16px' }}>
-            <label>Categoria</label>
-            <select value={categoria} onChange={(e) => setCategoria(e.target.value)} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
-              <option value="">Selecione...</option>
-              {CATEGORIAS.map(c => <option key={c} value={c}>{c.replace('_', ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase())}</option>)}
-            </select>
-          </div>
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#1e61d8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', marginTop: '16px' }}>
-            {loading ? 'Salvando...' : 'Salvar'}
-          </button>
         </form>
       </div>
     </div>

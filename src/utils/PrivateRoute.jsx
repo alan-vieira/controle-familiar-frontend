@@ -1,22 +1,20 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { checkAuthStatus } from '../services/auth';
+// src/utils/PrivateRoute.jsx
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function PrivateRoute({ children }) {
-  const [isAllowed, setIsAllowed] = useState(null);
-  const location = useLocation();
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    const verify = async () => {
-      const status = await checkAuthStatus();
-      setIsAllowed(status.logged_in === true);
-    };
-    verify();
-  }, []);
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, navigate]);
 
-  if (isAllowed === null) {
-    return <p>Verificando autenticação...</p>;
+  if (!token) {
+    return null; // ou um loading
   }
 
-  return isAllowed ? children : <Navigate to="/login" state={{ from: location }} replace />;
+  return children;
 }

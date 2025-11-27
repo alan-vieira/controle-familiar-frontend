@@ -1,31 +1,24 @@
-import { useNavigate } from 'react-router-dom';
-
+// src/components/Navigation.jsx
 export default function Navigation({ activeTab, onTabChange }) {
-  const navigate = useNavigate();
   const tabs = ['Despesas', 'Rendas', 'Colaboradores', 'Resumo'];
 
   return (
-    <nav style={{ borderBottom: '1px solid #ddd', display: 'flex', gap: '20px', padding: '10px 20px', background: '#f9f9f9' }}>
-      {tabs.map((tab) => (
-        <button
-          key={tab}
-          onClick={() => {
-            onTabChange(tab);
-            navigate('/');
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '8px 16px',
-            cursor: 'pointer',
-            fontWeight: activeTab === tab ? 'bold' : 'normal',
-            color: activeTab === tab ? '#1e61d8' : '#333',
-            borderBottom: activeTab === tab ? '2px solid #1e61d8' : 'none'
-          }}
-        >
-          {tab}
-        </button>
-      ))}
+    <nav className="bg-gray-100 p-2">
+      <div className="flex overflow-x-auto space-x-2 pb-1">
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => onTabChange(tab)}
+            className={`px-4 py-2 text-sm font-medium rounded whitespace-nowrap ${
+              activeTab === tab
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
     </nav>
   );
 }

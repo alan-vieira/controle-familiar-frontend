@@ -1,3 +1,4 @@
+// src/components/ColaboradoresTable.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import ColaboradorForm from './ColaboradorForm';
@@ -14,7 +15,7 @@ export default function ColaboradoresTable() {
     const load = async () => {
       try {
         const data = await api('colaboradores');
-        setColaboradores(data);
+        setColaboradores(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Erro ao carregar colaboradores:', err);
       } finally {
@@ -24,8 +25,8 @@ export default function ColaboradoresTable() {
     load();
   }, []);
 
-  const handleEdit = (colaborador) => {
-    setEditing(colaborador);
+  const handleEdit = (colab) => {
+    setEditing(colab);
     setShowForm(true);
   };
 
@@ -35,11 +36,7 @@ export default function ColaboradoresTable() {
 
   const handleDeleteConfirm = async () => {
     try {
-      const res = await fetch(`https://controle-familiar.onrender.com/api/colaboradores/${showDeleteConfirm}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (!res.ok) throw new Error('Erro ao excluir');
+      await api(`colaboradores/${showDeleteConfirm}`, { method: 'DELETE' });
       setColaboradores(colaboradores.filter(c => c.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
     } catch (err) {
@@ -49,48 +46,82 @@ export default function ColaboradoresTable() {
 
   const handleSuccess = async () => {
     const data = await api('colaboradores');
-    setColaboradores(data);
+    setColaboradores(Array.isArray(data) ? data : []);
     setShowForm(false);
     setEditing(null);
   };
 
-  if (loading) return <p>Carregando colaboradores...</p>;
+  if (loading) {
+    return <p className="text-center py-4 text-gray-600">Carregando colaboradores...</p>;
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
-          style={{ backgroundColor: '#1e61d8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-medium"
         >
           + Novo Colaborador
         </button>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
-        <thead>
-          <tr style={{ background: '#f5f5f5' }}>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>NOME</th>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>DIA FECHAMENTO</th>
-            <th style={{ padding: '12px', fontWeight: 'bold', textAlign: 'center' }}>AÇÕES</th>
-          </tr>
-        </thead>
-        <tbody>
-          {colaboradores.map((c) => (
-            <tr key={c.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '12px' }}>{c.nome}</td>
-              <td style={{ padding: '12px' }}>{c.dia_fechamento}</td>
-              <td style={{ padding: '12px', textAlign: 'center' }}>
-                <button onClick={() => handleEdit(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#007bff' }} title="Editar">✏️</button>
-                <button onClick={() => handleDeleteClick(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'red' }} title="Excluir">🗑️</button>
-              </td>
+      {/* Desktop */}
+      <div className="hidden md:block overflow-x-auto rounded border">
+        <table className="min-w-full text-sm text-left">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-3 font-semibold">NOME</th>
+              <th className="px-4 py-3 font-semibold">DIA FECHAMENTO</th>
+              <th className="px-4 py-3 font-semibold text-center">AÇÕES</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {colaboradores.map((c) => (
+              <tr key={c.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">{c.nome}</td>
+                <td className="px-4 py-3">{c.dia_fechamento}</td>
+                <td className="px-4 py-3 text-center space-x-3">
+                  <button onClick={() => handleEdit(c)} className="text-blue-600 hover:text-blue-800">✏️</button>
+                  <button onClick={() => handleDeleteClick(c.id)} className="text-red-600 hover:text-red-800">🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {showForm && <ColaboradorForm colaborador={editing} onClose={() => setShowForm(false)} onSuccess={handleSuccess} />}
-      {showDeleteConfirm && <ConfirmDeleteModal onConfirm={handleDeleteConfirm} onCancel={() => setShowDeleteConfirm(null)} />}
+      {/* Mobile */}
+      <div className="md:hidden space-y-4">
+        {colaboradores.length > 0 ? (
+          colaboradores.map((c) => (
+            <div key={c.id} className="border rounded-lg p-4 shadow-sm">
+              <p className="font-semibold text-lg">{c.nome}</p>
+              <p className="text-gray-600">Fechamento: dia {c.dia_fechamento}</p>
+              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
+                <button onClick={() => handleEdit(c)} className="text-blue-600 text-sm">✏️ Editar</button>
+                <button onClick={() => handleDeleteClick(c.id)} className="text-red-600 text-sm">🗑️ Excluir</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">Nenhum colaborador cadastrado.</p>
+        )}
+      </div>
+
+      {showForm && (
+        <ColaboradorForm
+          colaborador={editing}
+          onClose={() => setShowForm(false)}
+          onSuccess={handleSuccess}
+        />
+      )}
+      {showDeleteConfirm && (
+        <ConfirmDeleteModal
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteConfirm(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/components/DespesasTable.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import DespesaForm from './DespesaForm';
@@ -22,16 +23,17 @@ export default function DespesasTable({ mesAno }) {
 
   useEffect(() => {
     const load = async () => {
+      if (!mesAno) return;
       try {
         const data = await api(`despesas?mes_vigente=${mesAno}`);
-        setDespesas(data);
+        setDespesas(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Erro ao carregar despesas:', err);
       } finally {
         setLoading(false);
       }
     };
-    if (mesAno) load();
+    load();
   }, [mesAno]);
 
   const handleEdit = (despesa) => {
@@ -45,11 +47,7 @@ export default function DespesasTable({ mesAno }) {
 
   const handleDeleteConfirm = async () => {
     try {
-      const res = await fetch(`https://controle-familiar.onrender.com/api/despesas/${showDeleteConfirm}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (!res.ok) throw new Error('Erro ao excluir');
+      await api(`despesas/${showDeleteConfirm}`, { method: 'DELETE' });
       setDespesas(despesas.filter(d => d.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
     } catch (err) {
@@ -59,52 +57,92 @@ export default function DespesasTable({ mesAno }) {
 
   const handleSuccess = async () => {
     const data = await api(`despesas?mes_vigente=${mesAno}`);
-    setDespesas(data);
+    setDespesas(Array.isArray(data) ? data : []);
     setShowForm(false);
     setEditing(null);
   };
 
-  if (loading) return <p>Carregando despesas...</p>;
+  if (loading) {
+    return <p className="text-center py-4 text-gray-600">Carregando despesas...</p>;
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
-          style={{ backgroundColor: '#1e61d8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium"
         >
           + Nova Despesa
         </button>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', textAlign: 'left' }}>
-        <thead>
-          <tr style={{ background: '#f5f5f5' }}>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>DATA</th>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>DESCRIÇÃO</th>
-            <th style={{ padding: '12px', fontWeight: 'bold' }}>CAT.</th>
-            <th style={{ padding: '12px', fontWeight: 'bold', textAlign: 'right' }}>VALOR</th>
-            <th style={{ padding: '12px', fontWeight: 'bold', textAlign: 'center' }}>AÇÕES</th>
-          </tr>
-        </thead>
-        <tbody>
-          {despesas.map((d) => (
-            <tr key={d.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '12px' }}>{d.data_compra}</td>
-              <td style={{ padding: '12px' }}>{d.descricao}</td>
-              <td style={{ padding: '12px' }}>{CATEGORIA_LABELS[d.categoria] || d.categoria}</td>
-              <td style={{ padding: '12px', textAlign: 'right', color: 'red' }}>R$ {d.valor?.toFixed(2)}</td>
-              <td style={{ padding: '12px', textAlign: 'center' }}>
-                <button onClick={() => handleEdit(d)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '8px', color: '#007bff' }} title="Editar">✏️</button>
-                <button onClick={() => handleDeleteClick(d.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'red' }} title="Excluir">🗑️</button>
-              </td>
+      {/* Desktop: Tabela */}
+      <div className="hidden md:block overflow-x-auto rounded border">
+        <table className="min-w-full text-sm text-left">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-3 font-semibold">DATA</th>
+              <th className="px-4 py-3 font-semibold">DESCRIÇÃO</th>
+              <th className="px-4 py-3 font-semibold">CAT.</th>
+              <th className="px-4 py-3 font-semibold text-right">VALOR</th>
+              <th className="px-4 py-3 font-semibold text-center">AÇÕES</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {despesas.map((d) => (
+              <tr key={d.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">{d.data_compra}</td>
+                <td className="px-4 py-3">{d.descricao}</td>
+                <td className="px-4 py-3">{CATEGORIA_LABELS[d.categoria] || d.categoria}</td>
+                <td className="px-4 py-3 text-right text-red-600">R$ {Number(d.valor || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-center space-x-3">
+                  <button onClick={() => handleEdit(d)} className="text-blue-600 hover:text-blue-800" title="Editar">✏️</button>
+                  <button onClick={() => handleDeleteClick(d.id)} className="text-red-600 hover:text-red-800" title="Excluir">🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {showForm && <DespesaForm despesa={editing} onClose={() => setShowForm(false)} onSuccess={handleSuccess} />}
-      {showDeleteConfirm && <ConfirmDeleteModal onConfirm={handleDeleteConfirm} onCancel={() => setShowDeleteConfirm(null)} />}
+      {/* Mobile: Cards */}
+      <div className="md:hidden space-y-4">
+        {despesas.length > 0 ? (
+          despesas.map((d) => (
+            <div key={d.id} className="border rounded-lg p-4 shadow-sm">
+              <div className="flex justify-between">
+                <div>
+                  <p className="font-semibold text-base">{d.descricao}</p>
+                  <p className="text-sm text-gray-500">{d.data_compra}</p>
+                  <p className="text-sm mt-1"><span className="font-medium">Categoria:</span> {CATEGORIA_LABELS[d.categoria] || d.categoria}</p>
+                </div>
+                <p className="text-red-600 font-bold">R$ {Number(d.valor || 0).toFixed(2)}</p>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
+                <button onClick={() => handleEdit(d)} className="text-blue-600 text-sm">✏️ Editar</button>
+                <button onClick={() => handleDeleteClick(d.id)} className="text-red-600 text-sm">🗑️ Excluir</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">Nenhuma despesa registrada.</p>
+        )}
+      </div>
+
+      {showForm && (
+        <DespesaForm
+          despesa={editing}
+          onClose={() => setShowForm(false)}
+          onSuccess={handleSuccess}
+        />
+      )}
+      {showDeleteConfirm && (
+        <ConfirmDeleteModal
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteConfirm(null)}
+        />
+      )}
     </div>
   );
 }
