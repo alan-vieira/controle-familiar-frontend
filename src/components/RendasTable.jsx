@@ -1,6 +1,7 @@
 // src/components/RendasTable.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { formatMonthYearToBR } from '../utils/dateUtils';
 import RendaForm from './RendaForm';
 import ConfirmDeleteModal from './ConfirmDeleteModal'; // opcional, se quiser excluir
 
@@ -105,7 +106,7 @@ export default function RendasTable({ mesAno }) {
               rendas.map((r) => (
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">{r.nome}</td>
-                  <td className="px-4 py-3">{r.mes_ano}</td>
+                  <td className="px-4 py-3">{formatMonthYearToBR(r.mes_ano)}</td>
                   <td className="px-4 py-3 text-right text-green-600">
                     R$ {Number(r.valor || 0).toFixed(2)}
                   </td>
@@ -138,7 +139,7 @@ export default function RendasTable({ mesAno }) {
           rendas.map((r) => (
             <div key={r.id} className="border rounded-lg p-4 shadow-sm">
               <p className="font-semibold">{r.nome}</p>
-              <p className="text-gray-600">Mês: {r.mes_ano}</p>
+              <p className="text-gray-600">Mês: {formatMonthYearToBR(r.mes_ano)}</p>
               <p className="text-green-600 font-medium">R$ {Number(r.valor).toFixed(2)}</p>
               <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
                 <button

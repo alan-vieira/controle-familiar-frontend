@@ -1,6 +1,7 @@
 // src/components/DespesasTable.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { formatDateToBR } from '../utils/dateUtils';
 import DespesaForm from './DespesaForm';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
@@ -92,7 +93,7 @@ export default function DespesasTable({ mesAno }) {
           <tbody className="divide-y divide-gray-200">
             {despesas.map((d) => (
               <tr key={d.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">{d.data_compra}</td>
+                <td className="px-4 py-3">{formatDateToBR(d.data_compra)}</td>
                 <td className="px-4 py-3">{d.descricao}</td>
                 <td className="px-4 py-3">{CATEGORIA_LABELS[d.categoria] || d.categoria}</td>
                 <td className="px-4 py-3 text-right text-red-600">R$ {Number(d.valor || 0).toFixed(2)}</td>
