@@ -1,17 +1,19 @@
 // src/utils/dateUtils.js
 
-// Formata data completa: "2025-11-28" → "28/11/2025"
+// Formata "2025-11-28" → "28/11/2025" (sem fuso horário)
 export function formatDateToBR(dateString) {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
+  
+  // Aceita "2025-11-28" ou "2025-11-28T..."
+  const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!isoMatch) return '';
+
+  const [, year, month, day] = isoMatch;
+  // Constrói a data no formato brasileiro diretamente
   return `${day}/${month}/${year}`;
 }
 
-// Formata mês/ano: "2025-11" → "11/2025"
+// Formata "2025-11" → "11/2025"
 export function formatMonthYearToBR(monthYear) {
   if (!monthYear || typeof monthYear !== 'string') return '';
   const [year, month] = monthYear.split('-');
