@@ -115,7 +115,7 @@ export default function DespesasTable({ mesAno }) {
               <div className="flex justify-between">
                 <div>
                   <p className="font-semibold text-base">{d.descricao}</p>
-                  <p className="text-sm text-gray-500">{d.data_compra}</p>
+                  <p className="text-sm text-gray-500">{formatDateToBR(d.data_compra)}</p>
                   <p className="text-sm mt-1"><span className="font-medium">Categoria:</span> {CATEGORIA_LABELS[d.categoria] || d.categoria}</p>
                 </div>
                 <p className="text-red-600 font-bold">R$ {Number(d.valor || 0).toFixed(2)}</p>
