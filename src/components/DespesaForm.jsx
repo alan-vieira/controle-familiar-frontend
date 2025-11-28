@@ -22,28 +22,63 @@ const CATEGORIA_LABELS = {
   lazer_outros: 'Lazer/Outros'
 };
 
+// 🔹 Novo: Tipos de pagamento (ajuste conforme seu backend)
+const TIPOS_PAGAMENTO = [
+  { value: 'dinheiro', label: 'Dinheiro' },
+  { value: 'debito', label: 'Débito' },
+  { value: 'credito', label: 'Crédito' },
+  { value: 'pix', label: 'Pix' },
+  { value: 'boleto', label: 'Boleto' },
+  { value: 'transferencia', label: 'Transferência' }
+];
+
 export default function DespesaForm({ despesa, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     data_compra: '',
     descricao: '',
     categoria: 'alimentacao',
+    tipo_pg: 'dinheiro', // 🔹 valor padrão
+    colaborador_id: '',
     valor: ''
   });
+  const [colaboradores, setColaboradores] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingColabs, setLoadingColabs] = useState(true);
 
+  // 🔹 Carregar lista de colaboradores
+  useEffect(() => {
+    const loadColaboradores = async () => {
+      try {
+        const data = await api('colaboradores');
+        setColaboradores(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Erro ao carregar colaboradores:', err);
+        alert('Erro ao carregar lista de colaboradores.');
+      } finally {
+        setLoadingColabs(false);
+      }
+    };
+    loadColaboradores();
+  }, []);
+
+  // Preencher formulário no modo edição
   useEffect(() => {
     if (despesa) {
       setFormData({
-        data_compra: despesa.data_compra,
-        descricao: despesa.descricao,
-        categoria: despesa.categoria,
-        valor: despesa.valor
+        data_compra: despesa.data_compra || '',
+        descricao: despesa.descricao || '',
+        categoria: despesa.categoria || 'alimentacao',
+        tipo_pg: despesa.tipo_pg || 'dinheiro',
+        colaborador_id: despesa.colaborador_id?.toString() || '',
+        valor: despesa.valor?.toString() || ''
       });
     } else {
       setFormData({
         data_compra: '',
         descricao: '',
         categoria: 'alimentacao',
+        tipo_pg: 'dinheiro',
+        colaborador_id: '',
         valor: ''
       });
     }
@@ -60,20 +95,38 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
     try {
       const payload = {
         ...formData,
+        colaborador_id: parseInt(formData.colaborador_id, 10),
         valor: parseFloat(formData.valor)
       };
+
       if (despesa) {
-        await api(`despesas/${despesa.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        await api(`despesas/${despesa.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
       } else {
-        await api('despesas', { method: 'POST', body: JSON.stringify(payload) });
+        await api('despesas', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
       }
       onSuccess();
     } catch (err) {
-      alert('Erro ao salvar despesa: ' + err.message);
+      alert('Erro ao salvar despesa: ' + (err.message || 'tente novamente'));
     } finally {
       setLoading(false);
     }
   };
+
+  if (loadingColabs) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg w-full max-w-md p-6 text-center">
+          Carregando colaboradores...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -82,8 +135,9 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
           {despesa ? 'Editar Despesa' : 'Nova Despesa'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Data da Compra */}
           <div>
-            <label className="block text-sm font-medium mb-1">Data da Compra</label>
+            <label className="block text-sm font-medium mb-1">Data da Compra *</label>
             <input
               type="date"
               name="data_compra"
@@ -93,8 +147,10 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
               className="w-full border rounded px-3 py-2"
             />
           </div>
+
+          {/* Descrição */}
           <div>
-            <label className="block text-sm font-medium mb-1">Descrição</label>
+            <label className="block text-sm font-medium mb-1">Descrição *</label>
             <input
               type="text"
               name="descricao"
@@ -104,8 +160,10 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
               className="w-full border rounded px-3 py-2"
             />
           </div>
+
+          {/* Categoria */}
           <div>
-            <label className="block text-sm font-medium mb-1">Categoria</label>
+            <label className="block text-sm font-medium mb-1">Categoria *</label>
             <select
               name="categoria"
               value={formData.categoria}
@@ -117,8 +175,45 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
               ))}
             </select>
           </div>
+
+          {/* 🔹 Tipo de Pagamento */}
           <div>
-            <label className="block text-sm font-medium mb-1">Valor (R$)</label>
+            <label className="block text-sm font-medium mb-1">Tipo de Pagamento *</label>
+            <select
+              name="tipo_pg"
+              value={formData.tipo_pg}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2"
+            >
+              {TIPOS_PAGAMENTO.map(tp => (
+                <option key={tp.value} value={tp.value}>{tp.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 🔹 Colaborador */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Colaborador *</label>
+            <select
+              name="colaborador_id"
+              value={formData.colaborador_id}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="">Selecione</option>
+              {colaboradores.map((colab) => (
+                <option key={colab.id} value={colab.id}>
+                  {colab.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Valor */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
             <input
               type="number"
               step="0.01"
@@ -130,6 +225,8 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
               className="w-full border rounded px-3 py-2"
             />
           </div>
+
+          {/* Botões */}
           <div className="flex justify-end space-x-3 pt-2">
             <button
               type="button"
