@@ -22,14 +22,12 @@ const CATEGORIA_LABELS = {
   lazer_outros: 'Lazer/Outros'
 };
 
-// 🔹 Novo: Tipos de pagamento (ajuste conforme seu backend)
 const TIPOS_PAGAMENTO = [
   { value: 'dinheiro', label: 'Dinheiro' },
   { value: 'debito', label: 'Débito' },
   { value: 'credito', label: 'Crédito' },
   { value: 'pix', label: 'Pix' },
-  { value: 'boleto', label: 'Boleto' },
-  { value: 'transferencia', label: 'Transferência' }
+  { value: 'outros', label: 'Outros' }
 ];
 
 export default function DespesaForm({ despesa, onClose, onSuccess }) {
