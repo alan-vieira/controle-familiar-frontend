@@ -7,15 +7,22 @@ import RendasTable from '../components/RendasTable';
 import ColaboradoresTable from '../components/ColaboradoresTable';
 import ResumoMensal from '../components/ResumoMensal';
 
+// Função auxiliar para obter o mês atual no formato YYYY-MM
+const getMesAtual = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+};
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Despesas');
-  const [mesSelecionado, setMesSelecionado] = useState('');
+  // ✅ Inicializa diretamente com o mês atual (sem começar vazio)
+  const [mesSelecionado, setMesSelecionado] = useState(getMesAtual);
 
-  useEffect(() => {
-    const now = new Date();
-    const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    setMesSelecionado(mesAtual);
-  }, []);
+  // Opcional: se quiser garantir que o mês atual é definido mesmo em edge cases
+  // o useEffect abaixo pode ser mantido, mas não é estritamente necessário
+  // useEffect(() => {
+  //   setMesSelecionado(getMesAtual());
+  // }, []);
 
   return (
     <div>
@@ -31,6 +38,7 @@ export default function Dashboard() {
               value={mesSelecionado}
               onChange={(e) => {
                 const valor = e.target.value;
+                // ✅ Aceita apenas valores válidos: YYYY-(01 a 12)
                 if (/^\d{4}-(0[1-9]|1[0-2])$/.test(valor)) {
                   setMesSelecionado(valor);
                 }
@@ -40,10 +48,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'Despesas' && mesSelecionado && <DespesasTable mesAno={mesSelecionado} />}
-        {activeTab === 'Rendas' && mesSelecionado && <RendasTable mesAno={mesSelecionado} />}
+        {activeTab === 'Despesas' && <DespesasTable mesAno={mesSelecionado} />}
+        {activeTab === 'Rendas' && <RendasTable mesAno={mesSelecionado} />}
         {activeTab === 'Colaboradores' && <ColaboradoresTable />}
-        {activeTab === 'Resumo' && mesSelecionado && <ResumoMensal mesAno={mesSelecionado} />}
+        {activeTab === 'Resumo' && <ResumoMensal mesAno={mesSelecionado} />}
       </div>
     </div>
   );
