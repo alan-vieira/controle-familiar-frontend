@@ -39,7 +39,7 @@ export default function Dashboard() {
         {activeTab === 'Despesas' && mesSelecionado && <DespesasTable mesAno={mesSelecionado} />}
         {activeTab === 'Rendas' && mesSelecionado && <RendasTable mesAno={mesSelecionado} />}
         {activeTab === 'Colaboradores' && <ColaboradoresTable />}
-        {activeTab === 'Resumo' && <ResumoMensal />}
+        {activeTab === 'Resumo' && mesSelecionado && <ResumoMensal mesAno={mesSelecionado} />}
       </div>
     </div>
   );
