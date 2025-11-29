@@ -15,6 +15,13 @@ const CATEGORIA_LABELS = {
   lazer_outros: 'Lazer/Outros'
 };
 
+const TIPO_PG_LABELS = {
+  pix: 'PIX',
+  credito: 'Crédito',
+  debito: 'Débito',
+  dinheiro: 'Dinheiro'
+};
+
 export default function DespesasTable({ mesAno }) {
   const [despesas, setDespesas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +93,7 @@ export default function DespesasTable({ mesAno }) {
               <th className="px-4 py-3 font-semibold">DATA</th>
               <th className="px-4 py-3 font-semibold">DESCRIÇÃO</th>
               <th className="px-4 py-3 font-semibold">CAT.</th>
+              <th className="px-4 py-3 font-semibold">TIPO PG</th> {/* ← Nova coluna */}
               <th className="px-4 py-3 font-semibold text-right">VALOR</th>
               <th className="px-4 py-3 font-semibold text-center">AÇÕES</th>
             </tr>
@@ -96,6 +104,7 @@ export default function DespesasTable({ mesAno }) {
                 <td className="px-4 py-3">{formatDateToBR(d.data_compra)}</td>
                 <td className="px-4 py-3">{d.descricao}</td>
                 <td className="px-4 py-3">{CATEGORIA_LABELS[d.categoria] || d.categoria}</td>
+                <td className="px-4 py-3">{TIPO_PG_LABELS[d.tipo_pg] || '—'}</td> {/* ← Novo dado */}
                 <td className="px-4 py-3 text-right text-red-600">R$ {Number(d.valor || 0).toFixed(2)}</td>
                 <td className="px-4 py-3 text-center space-x-3">
                   <button onClick={() => handleEdit(d)} className="text-blue-600 hover:text-blue-800" title="Editar">✏️</button>
@@ -116,7 +125,12 @@ export default function DespesasTable({ mesAno }) {
                 <div>
                   <p className="font-semibold text-base">{d.descricao}</p>
                   <p className="text-sm text-gray-500">{formatDateToBR(d.data_compra)}</p>
-                  <p className="text-sm mt-1"><span className="font-medium">Categoria:</span> {CATEGORIA_LABELS[d.categoria] || d.categoria}</p>
+                  <p className="text-sm mt-1">
+                    <span className="font-medium">Categoria:</span> {CATEGORIA_LABELS[d.categoria] || d.categoria}
+                  </p>
+                  <p className="text-sm mt-1">
+                    <span className="font-medium">Tipo PG:</span> {TIPO_PG_LABELS[d.tipo_pg] || '—'}
+                  </p>
                 </div>
                 <p className="text-red-600 font-bold">R$ {Number(d.valor || 0).toFixed(2)}</p>
               </div>
