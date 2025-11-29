@@ -1,35 +1,47 @@
 // src/components/ResumoMensal.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
 export default function ResumoMensal() {
-  const [mes, setMes] = useState('');
+  // Define o mês atual como valor inicial (ex: "2025-11")
+  const [mes, setMes] = useState(() => {
+    const hoje = new Date();
+    return hoje.toISOString().slice(0, 7); // Formato "YYYY-MM"
+  });
+
   const [resumo, setResumo] = useState(null);
   const [divisaoStatus, setDivisaoStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleCarregar = async () => {
+  // Carrega automaticamente quando `mes` muda
+  useEffect(() => {
     if (!mes) {
+      setResumo(null);
+      setDivisaoStatus(null);
       setError('Selecione um mês.');
       return;
     }
 
-    setLoading(true);
-    setError('');
-    try {
-      const resumoData = await api(`resumo/${mes}`);
-      const divisaoData = await api(`divisao/${mes}`);
-      setResumo(resumoData);
-      setDivisaoStatus(divisaoData);
-    } catch (err) {
-      setError(err.message || 'Erro ao carregar resumo');
-      setResumo(null);
-      setDivisaoStatus(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const carregarDados = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const resumoData = await api(`resumo/${mes}`);
+        const divisaoData = await api(`divisao/${mes}`);
+        setResumo(resumoData);
+        setDivisaoStatus(divisaoData);
+      } catch (err) {
+        setError(err.message || 'Erro ao carregar resumo');
+        setResumo(null);
+        setDivisaoStatus(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, [mes]); // ← Dispara sempre que o mês muda
 
   const handleMarcarComoPago = async () => {
     try {
@@ -63,13 +75,7 @@ export default function ResumoMensal() {
             className="border rounded px-3 py-2 w-full sm:w-auto"
           />
         </div>
-        <button
-          onClick={handleCarregar}
-          disabled={loading}
-          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          {loading ? 'Carregando...' : 'Carregar Resumo'}
-        </button>
+        {/* ❌ Botão "Carregar Resumo" removido */}
       </div>
 
       {error && <p className="text-red-600">{error}</p>}
