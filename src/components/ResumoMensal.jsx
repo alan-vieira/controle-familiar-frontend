@@ -2,33 +2,26 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 
-export default function ResumoMensal() {
-  // Define o mês atual como valor inicial (ex: "2025-11")
-  const [mes, setMes] = useState(() => {
-    const hoje = new Date();
-    return hoje.toISOString().slice(0, 7); // Formato "YYYY-MM"
-  });
-
+export default function ResumoMensal({ mesAno }) {
   const [resumo, setResumo] = useState(null);
   const [divisaoStatus, setDivisaoStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Carrega automaticamente quando `mes` muda
   useEffect(() => {
-    if (!mes) {
-      setResumo(null);
-      setDivisaoStatus(null);
-      setError('Selecione um mês.');
-      return;
-    }
-
     const carregarDados = async () => {
+      if (!mesAno) {
+        setResumo(null);
+        setDivisaoStatus(null);
+        setError('');
+        return;
+      }
+
       setLoading(true);
       setError('');
       try {
-        const resumoData = await api(`resumo/${mes}`);
-        const divisaoData = await api(`divisao/${mes}`);
+        const resumoData = await api(`resumo/${mesAno}`);
+        const divisaoData = await api(`divisao/${mesAno}`);
         setResumo(resumoData);
         setDivisaoStatus(divisaoData);
       } catch (err) {
@@ -41,11 +34,15 @@ export default function ResumoMensal() {
     };
 
     carregarDados();
-  }, [mes]); // ← Dispara sempre que o mês muda
+  }, [mesAno]); // ← Recarrega sempre que o mês mudar (vindo do pai)
 
   const handleMarcarComoPago = async () => {
+    if (!mesAno) return;
     try {
-      const data = await api(`divisao/${mes}/marcar-pago`, { method: 'POST', body: JSON.stringify({}) });
+      const data = await api(`divisao/${mesAno}/marcar-pago`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
       setDivisaoStatus(data);
     } catch (err) {
       alert('Erro ao marcar como pago: ' + err.message);
@@ -53,34 +50,26 @@ export default function ResumoMensal() {
   };
 
   const handleDesmarcarComoPago = async () => {
+    if (!mesAno) return;
     try {
-      const data = await api(`divisao/${mes}/desmarcar-pago`, { method: 'POST' });
+      const data = await api(`divisao/${mesAno}/desmarcar-pago`, {
+        method: 'POST'
+      });
       setDivisaoStatus(data);
     } catch (err) {
       alert('Erro ao desmarcar como pago: ' + err.message);
     }
   };
 
-  if (loading) return <p className="text-center py-4 text-gray-600">Carregando resumo...</p>;
+  if (loading) {
+    return <p className="text-center py-4 text-gray-600">Carregando resumo...</p>;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Mês/Ano</label>
-          <input
-            type="month"
-            value={mes}
-            onChange={(e) => setMes(e.target.value)}
-            className="border rounded px-3 py-2 w-full sm:w-auto"
-          />
-        </div>
-        {/* ❌ Botão "Carregar Resumo" removido */}
-      </div>
-
       {error && <p className="text-red-600">{error}</p>}
 
-      {resumo && (
+      {resumo ? (
         <div className="space-y-6">
           <div className="flex items-center flex-wrap gap-2">
             <strong className="text-gray-800">Divisão do mês:</strong>
@@ -108,20 +97,22 @@ export default function ResumoMensal() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {resumo.colaboradores.map((c) => (
+            {resumo.colaboradores?.map((c) => (
               <div key={c.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <h4 className="font-bold text-lg">{c.nome}</h4>
-                <p><strong>Renda:</strong> R$ {c.renda.toFixed(2)}</p>
-                <p><strong>Deve pagar:</strong> R$ {c.deve_pagar.toFixed(2)}</p>
-                <p><strong>Pagou:</strong> R$ {c.pagou.toFixed(2)}</p>
+                <p><strong>Renda:</strong> R$ {Number(c.renda).toFixed(2)}</p>
+                <p><strong>Deve pagar:</strong> R$ {Number(c.deve_pagar).toFixed(2)}</p>
+                <p><strong>Pagou:</strong> R$ {Number(c.pagou).toFixed(2)}</p>
                 <p className={`font-bold ${c.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  <strong>Saldo:</strong> R$ {c.saldo.toFixed(2)}
+                  <strong>Saldo:</strong> R$ {Number(c.saldo).toFixed(2)}
                 </p>
               </div>
             ))}
           </div>
         </div>
-      )}
+      ) : !error && mesAno ? (
+        <p className="text-center text-gray-500">Nenhum dado encontrado para {mesAno}.</p>
+      ) : null}
     </div>
   );
 }
