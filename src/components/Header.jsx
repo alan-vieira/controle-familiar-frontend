@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export default function Header() {
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
     window.location.href = '/login';
   };
 

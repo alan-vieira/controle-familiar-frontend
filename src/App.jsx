@@ -17,7 +17,7 @@ function IdleLogout() {
     const resetTimer = () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('token');
         navigate('/login', { replace: true });
         // Força limpeza total do estado da app
         window.location.reload();
