@@ -24,7 +24,7 @@ export default function Dashboard() {
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="p-4 md:p-6">
-        {['Despesas', 'Rendas'].includes(activeTab) && (
+        {['Despesas', 'Rendas', 'Resumo'].includes(activeTab) && (
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Mês:</label>
             <input
