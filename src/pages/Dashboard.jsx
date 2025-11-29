@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState, useEffect } from 'react'; // 👈 adicione useEffect
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Navigation from '../components/Navigation';
 import DespesasTable from '../components/DespesasTable';
@@ -11,7 +11,6 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Despesas');
   const [mesSelecionado, setMesSelecionado] = useState('');
 
-  // 👇 Define o mês atual após a montagem
   useEffect(() => {
     const now = new Date();
     const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -30,8 +29,13 @@ export default function Dashboard() {
             <input
               type="month"
               value={mesSelecionado}
-              onChange={(e) => setMesSelecionado(e.target.value)}
-              className="border rounded px-3 py-2"
+              onChange={(e) => {
+                const valor = e.target.value;
+                if (/^\d{4}-(0[1-9]|1[0-2])$/.test(valor)) {
+                  setMesSelecionado(valor);
+                }
+              }}
+              className="border rounded px-3 py-2 w-full sm:w-auto"
             />
           </div>
         )}
