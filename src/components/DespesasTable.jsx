@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { formatDateToBR } from '../utils/dateUtils';
+import { formatCurrency } from '../utils/formatCurrency';
 import DespesaForm from './DespesaForm';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 
@@ -105,7 +106,7 @@ export default function DespesasTable({ mesAno }) {
                 <td className="px-4 py-3">{d.descricao}</td>
                 <td className="px-4 py-3">{CATEGORIA_LABELS[d.categoria] || d.categoria}</td>
                 <td className="px-4 py-3">{TIPO_PG_LABELS[d.tipo_pg] || '—'}</td> {/* ← Novo dado */}
-                <td className="px-4 py-3 text-right text-red-600">R$ {Number(d.valor || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right text-red-600">{formatCurrency(d.valor)}</td>
                 <td className="px-4 py-3 text-center space-x-3">
                   <button onClick={() => handleEdit(d)} className="text-blue-600 hover:text-blue-800" title="Editar">✏️</button>
                   <button onClick={() => handleDeleteClick(d.id)} className="text-red-600 hover:text-red-800" title="Excluir">🗑️</button>
@@ -132,7 +133,7 @@ export default function DespesasTable({ mesAno }) {
                     <span className="font-medium">Tipo PG:</span> {TIPO_PG_LABELS[d.tipo_pg] || '—'}
                   </p>
                 </div>
-                <p className="text-red-600 font-bold">R$ {Number(d.valor || 0).toFixed(2)}</p>
+                <p className="text-red-600 font-bold">{formatCurrency(d.valor)}</p>
               </div>
               <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
                 <button onClick={() => handleEdit(d)} className="text-blue-600 text-sm">✏️ Editar</button>

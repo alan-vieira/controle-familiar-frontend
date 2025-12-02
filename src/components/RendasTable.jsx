@@ -2,15 +2,16 @@
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { formatMonthYearToBR } from '../utils/dateUtils';
+import { formatCurrency } from '../utils/formatCurrency';
 import RendaForm from './RendaForm';
-import ConfirmDeleteModal from './ConfirmDeleteModal'; // opcional, se quiser excluir
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 export default function RendasTable({ mesAno }) {
   const [rendas, setRendas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // opcional
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   useEffect(() => {
     const loadRendas = async () => {
@@ -108,7 +109,7 @@ export default function RendasTable({ mesAno }) {
                   <td className="px-4 py-3">{r.nome}</td>
                   <td className="px-4 py-3">{formatMonthYearToBR(r.mes_ano)}</td>
                   <td className="px-4 py-3 text-right text-green-600">
-                    R$ {Number(r.valor || 0).toFixed(2)}
+                    {formatCurrency(r.valor)}
                   </td>
                   <td className="px-4 py-3 text-center space-x-2">
                     <button
@@ -140,7 +141,7 @@ export default function RendasTable({ mesAno }) {
             <div key={r.id} className="border rounded-lg p-4 shadow-sm">
               <p className="font-semibold">{r.nome}</p>
               <p className="text-gray-600">Mês: {formatMonthYearToBR(r.mes_ano)}</p>
-              <p className="text-green-600 font-medium">R$ {Number(r.valor).toFixed(2)}</p>
+              <p className="text-green-600 font-medium">{formatCurrency(r.valor)}</p>
               <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end space-x-3">
                 <button
                   onClick={() => handleEdit(r)}

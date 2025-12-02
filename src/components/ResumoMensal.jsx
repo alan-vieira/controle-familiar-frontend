@@ -1,6 +1,7 @@
 // src/components/ResumoMensal.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { formatCurrency } from '../utils/formatCurrency';
 
 export default function ResumoMensal({ mesAno }) {
   const [resumo, setResumo] = useState(null);
@@ -100,11 +101,11 @@ export default function ResumoMensal({ mesAno }) {
             {resumo.colaboradores?.map((c) => (
               <div key={c.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <h4 className="font-bold text-lg">{c.nome}</h4>
-                <p><strong>Renda:</strong> R$ {Number(c.renda).toFixed(2)}</p>
-                <p><strong>Deve pagar:</strong> R$ {Number(c.deve_pagar).toFixed(2)}</p>
-                <p><strong>Pagou:</strong> R$ {Number(c.pagou).toFixed(2)}</p>
+                <p><strong>Renda:</strong> {formatCurrency(c.renda)}</p>
+                <p><strong>Deve pagar:</strong> {formatCurrency(c.deve_pagar)}</p>
+                <p><strong>Pagou:</strong> {formatCurrency(c.pagou)}</p>
                 <p className={`font-bold ${c.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  <strong>Saldo:</strong> R$ {Number(c.saldo).toFixed(2)}
+                  <strong>Saldo:</strong> {formatCurrency(c.saldo)}
                 </p>
               </div>
             ))}
