@@ -12,7 +12,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback.html`, // ✅ .html adicionado
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -28,7 +28,7 @@ export default function Login() {
       console.error('Erro inesperado no login:', err);
       alert('Erro inesperado ao fazer login com Google');
     }
-    }
+    // ❌ REMOVA o } extra que estava aqui
   };
 
   return (
@@ -54,3 +54,4 @@ export default function Login() {
       </div>
     </div>
   );
+}
