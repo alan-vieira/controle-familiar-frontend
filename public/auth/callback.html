@@ -1,0 +1,30 @@
+<!-- public/auth/callback.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Autenticando...</title>
+</head>
+<body>
+  <p>Processando login...</p>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://spyrzevebsvmartoijgl.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI'
+    );
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).finally(() => {
+        window.location.href = '/'; // volta para o app React
+      });
+    } else {
+      window.location.href = '/login.html';
+    }
+  </script>
+</body>
+</html>

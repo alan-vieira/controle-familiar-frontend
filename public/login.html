@@ -1,0 +1,38 @@
+<!-- public/login.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Controle Familiar</title>
+  <style>body { font-family: sans-serif; text-align: center; padding: 2rem; }</style>
+</head>
+<body>
+  <h1>Controle Familiar</h1>
+  <button id="google-login" style="padding:0.75rem 1.5rem;background:#4285F4;color:white;border:none;border-radius:4px;cursor:pointer;">
+    Entrar com Google
+  </button>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://spyrzevebsvmartoijgl.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI'
+    );
+
+    document.getElementById('google-login').addEventListener('click', async () => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://controle-familiar-frontend.vercel.app/auth/callback.html'
+        }
+      });
+      if (error) {
+        alert('Erro no login com Google');
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>
