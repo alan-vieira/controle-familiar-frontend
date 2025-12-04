@@ -1,20 +1,20 @@
 // src/pages/OAuthCallback.jsx
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import supabase from '../lib/supabaseClient'; // ✅ caminho relativo correto
+import { useNavigate } from 'react-router-dom';
+import supabase from '../lib/supabaseClient'; // default import
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const handleCallback = async () => {
-      // Supabase lê o code da URL automaticamente
+      // ✅ Método correto na v2+
       const { error } = await supabase.auth.getSessionFromUrl();
+
       if (error) {
-        console.error('Erro no OAuth callback:', error);
-        alert('Falha na autenticação. Tente novamente.');
-        navigate('/login');
+        console.error('Erro no callback:', error.message);
+        alert(`Falha na autenticação: ${error.message}`);
+        navigate('/login', { replace: true });
       } else {
         navigate('/', { replace: true });
       }
@@ -23,5 +23,5 @@ export default function OAuthCallback() {
     handleCallback();
   }, [navigate]);
 
-  return <div>Processando login...</div>;
+  return <div>Processando login com Google...</div>;
 }
