@@ -8,15 +8,26 @@ export default function Login() {
   const from = location.state?.from?.pathname || '/';
 
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/auth/callback.html'
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Erro no login do Google:', error);
+        alert(`Erro ao iniciar login com Google: ${error.message}`);
       }
-    });
-    if (error) {
-      alert('Erro ao iniciar login com Google');
-      console.error(error);
+    } catch (err) {
+      console.error('Erro inesperado no login:', err);
+      alert('Erro inesperado ao fazer login com Google');
+    }
     }
   };
 

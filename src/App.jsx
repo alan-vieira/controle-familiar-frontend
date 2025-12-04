@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Callback from './pages/Callback';
 import supabase from './lib/supabaseClient'; // ✅ Corrigido: caminho relativo DENTRO de src/
 
 function IdleLogout() {
@@ -74,6 +75,7 @@ function App() {
       <IdleLogout />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<Callback />} />
         <Route path="/*" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       </Routes>
     </Router>

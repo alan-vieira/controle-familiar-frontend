@@ -14,25 +14,13 @@
   </style>
 </head>
 <body>
-  <p>Processando login com Google...</p>
+  <p>Redirecionando para o aplicativo...</p>
 
   <script type="module">
-    import { createClient } from '@supabase/supabase-js';
-
-    const SUPABASE_URL = 'https://spyrzevebsvmartoijgl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI';
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const { data, error } = await supabase.auth.getSessionFromUrl();
-
-    if (error) {
-      console.error('Erro no callback do OAuth:', error.message);
-      alert('Falha na autenticação. Tente novamente.');
-      window.location.href = '/login';
-    } else {
-      window.location.href = '/';
-    }
+    // Redirect to the React callback route to handle OAuth properly
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramsString = urlParams.toString();
+    window.location.href = paramsString ? `/auth/callback?${paramsString}` : '/auth/callback';
   </script>
 </body>
 </html>
