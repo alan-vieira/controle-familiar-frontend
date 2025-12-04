@@ -1,7 +1,7 @@
 // src/pages/OAuthCallback.jsx
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from './lib/supabaseClient';
+import supabase from '../lib/supabaseClient'; // ✅ caminho relativo correto
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
