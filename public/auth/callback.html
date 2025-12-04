@@ -6,7 +6,7 @@
   <title>Autenticando...</title>
 </head>
 <body>
-  <p>Processando login...</p>
+  <p style="text-align:center; padding:2rem;">Processando login com Google...</p>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -20,10 +20,10 @@
 
     if (code) {
       supabase.auth.exchangeCodeForSession(code).finally(() => {
-        window.location.href = '/'; // volta para o app React
+        window.location.href = '/';
       });
     } else {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   </script>
 </body>
