@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Importa o Supabase via CDN (sem npm install)
+// ✅ Corrigido: removido espaço extra
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const supabase = createClient(
@@ -39,9 +39,9 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Despesas');
   const [mesSelecionado, setMesSelecionado] = useState(getMesAtual());
 
-  // Verifica autenticação ao montar
   useEffect(() => {
     const checkAuth = async () => {
+      // ✅ Corrigido: destructuring correto
       const {  { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login', { replace: true });

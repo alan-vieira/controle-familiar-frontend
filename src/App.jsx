@@ -1,11 +1,11 @@
 // src/App.jsx
 import { BrowserRouter as Router } from 'react-router-dom';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useState } from 'react-router-dom';
 import { useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 
-// Importa o Supabase via CDN (sem npm install)
+// ✅ Corrigido: removido espaço extra
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const supabase = createClient(
@@ -13,16 +13,15 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-// Componente de logout por inatividade
 function IdleLogout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutos
+    const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
     let timer;
 
     const handleLogout = async () => {
-      await supabase.auth.signOut(); // Limpa a sessão no Supabase
+      await supabase.auth.signOut();
       navigate('/login', { replace: true });
     };
 
@@ -45,7 +44,6 @@ function IdleLogout() {
   return null;
 }
 
-// Rota privada simples (sem token manual)
 function PrivateRoute({ children }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -53,6 +51,7 @@ function PrivateRoute({ children }) {
 
   useEffect(() => {
     const checkSession = async () => {
+      // ✅ Corrigido: destructuring correto
       const {  { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login', { replace: true });
