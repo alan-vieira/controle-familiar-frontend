@@ -1,18 +1,11 @@
 // src/services/supabaseAuth.js
-// Autenticação com Supabase Auth via CDN (sem npm install)
-
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// Cria cliente usando variáveis de ambiente do Vercel
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-/**
- * Inicia login com Google
- * Redireciona o usuário para a tela de consentimento do Google
- */
 export const loginWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -27,9 +20,6 @@ export const loginWithGoogle = async () => {
   }
 };
 
-/**
- * Encerra a sessão do usuário
- */
 export const logout = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) {
@@ -38,10 +28,6 @@ export const logout = async () => {
   }
 };
 
-/**
- * Verifica se o usuário está autenticado
- * @returns {Promise<{ logged_in: boolean, user: object|null }>}
- */
 export const checkAuthStatus = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   return {
@@ -50,5 +36,4 @@ export const checkAuthStatus = async () => {
   };
 };
 
-// Exporta o cliente para uso direto, se necessário
 export { supabase };
