@@ -18,8 +18,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        // REMOVA OS ESPAÇOS NO FINAL!
-        redirectTo: 'https://controle-familiar-frontend.vercel.app/auth/callback.html'
+        redirectTo: window.location.origin + '/auth/callback.html'
       }
     });
     if (error) {

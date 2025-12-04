@@ -19,9 +19,12 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+    const SUPABASE_URL = 'https://spyrzevebsvmartoijgl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI';
+
     const supabase = createClient(
-      'https://spyrzevebsvmartoijgl.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI'
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
     );
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -33,7 +36,7 @@
           if (error) {
             console.error('Erro ao trocar código por sessão:', error);
             alert('Falha na autenticação. Tente novamente.');
-            window.location.href = '/login.html';
+            window.location.href = '/login';
           } else {
             window.location.href = '/';
           }
@@ -41,10 +44,10 @@
         .catch(err => {
           console.error('Erro inesperado:', err);
           alert('Erro inesperado. Verifique o console.');
-          window.location.href = '/login.html';
+          window.location.href = '/login';
         });
     } else {
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   </script>
 </body>

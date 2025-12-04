@@ -38,16 +38,19 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+    const SUPABASE_URL = 'https://spyrzevebsvmartoijgl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI';
+
     const supabase = createClient(
-      'https://spyrzevebsvmartoijgl.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI'
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
     );
 
     document.getElementById('google-login').addEventListener('click', async () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://controle-familiar-frontend.vercel.app/auth/callback.html'
+          redirectTo: window.location.origin + '/auth/callback.html'
         }
       });
       if (error) {
