@@ -25,6 +25,6 @@ export const logout = () => {
 
 // Verifica se está logado
 export const checkAuthStatus = async () => {
-  const {  { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
   return { logged_in: !!session, user: session?.user || null };
 };

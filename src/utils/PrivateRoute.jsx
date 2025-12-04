@@ -17,7 +17,7 @@ function PrivateRoute({ children }) {
 
   useEffect(() => {
     const checkSession = async () => {
-      const {  { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login', { replace: true });
       } else {

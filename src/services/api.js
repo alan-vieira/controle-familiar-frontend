@@ -14,7 +14,7 @@ export const api = async (endpoint, options = {}) => {
   // Obtém o token da sessão ativa do Supabase
   let token = null;
   try {
-    const {  { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     token = session?.access_token;
   } catch (err) {
     // Sem sessão ativa
