@@ -1,4 +1,4 @@
-/ src/pages/Callback.jsx
+// src/pages/Callback.jsx
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
