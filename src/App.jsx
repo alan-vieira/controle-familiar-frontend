@@ -1,11 +1,10 @@
 // src/App.jsx
-import { BrowserRouter as Router } from 'react-router-dom';
-import { Routes, Route, useNavigate, useState } from 'react-router-dom';
-import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 
-// ✅ Corrigido: removido espaço extra
+// Importa o Supabase via CDN
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const supabase = createClient(
