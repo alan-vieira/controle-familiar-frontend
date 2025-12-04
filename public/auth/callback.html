@@ -4,9 +4,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>Autenticando...</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: #f9fafb;
+    }
+  </style>
 </head>
 <body>
-  <p style="text-align:center; padding:2rem;">Processando login com Google...</p>
+  <p>Processando login com Google...</p>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -19,9 +28,21 @@
     const code = urlParams.get('code');
 
     if (code) {
-      supabase.auth.exchangeCodeForSession(code).finally(() => {
-        window.location.href = '/';
-      });
+      supabase.auth.exchangeCodeForSession(code)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Erro ao trocar código por sessão:', error);
+            alert('Falha na autenticação. Tente novamente.');
+            window.location.href = '/login.html';
+          } else {
+            window.location.href = '/';
+          }
+        })
+        .catch(err => {
+          console.error('Erro inesperado:', err);
+          alert('Erro inesperado. Verifique o console.');
+          window.location.href = '/login.html';
+        });
     } else {
       window.location.href = '/login.html';
     }

@@ -11,7 +11,7 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Verificação de login (frontend-only) -->
+    <!-- Proteção de login (sem top-level await) -->
     <script type="module">
       import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -20,11 +20,13 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNweXJ6ZXZlYnN2bWFydG9pamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3OTYzMDAsImV4cCI6MjA4MDM3MjMwMH0.2kqZubRIn4NdiU6ud0EwjghbYxfgzn1qL3OH-_uwMnI'
       );
 
-      // Verifica se há sessão ativa
-      const {  data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = '/login.html';
-      }
+      // Evita top-level await
+      (async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = '/login.html';
+        }
+      })();
     </script>
   </body>
 </html>

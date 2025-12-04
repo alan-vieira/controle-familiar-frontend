@@ -4,9 +4,16 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import PrivateRoute from './utils/PrivateRoute';
 
-// Componente interno para gerenciar ociosidade
+// Importa o Supabase via CDN (sem npm install)
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+// Componente de logout por inatividade
 function IdleLogout() {
   const navigate = useNavigate();
 
@@ -14,29 +21,51 @@ function IdleLogout() {
     const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutos
     let timer;
 
+    const handleLogout = async () => {
+      await supabase.auth.signOut(); // Limpa a sessão no Supabase
+      navigate('/login', { replace: true });
+    };
+
     const resetTimer = () => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        localStorage.removeItem('token');
-        navigate('/login', { replace: true });
-        // Força limpeza total do estado da app
-        window.location.reload();
-      }, INACTIVITY_TIMEOUT);
+      timer = setTimeout(handleLogout, INACTIVITY_TIMEOUT);
     };
 
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'wheel'];
-    const handler = () => resetTimer();
+    events.forEach(event => window.addEventListener(event, resetTimer));
 
-    events.forEach(event => window.addEventListener(event, handler));
     resetTimer();
 
     return () => {
-      events.forEach(event => window.removeEventListener(event, handler));
+      events.forEach(event => window.removeEventListener(event, resetTimer));
       if (timer) clearTimeout(timer);
     };
   }, [navigate]);
 
-  return null; // Este componente não renderiza nada
+  return null;
+}
+
+// Rota privada simples (sem token manual)
+function PrivateRoute({ children }) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {  { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login', { replace: true });
+      } else {
+        setAuthenticated(true);
+      }
+      setLoading(false);
+    };
+    checkSession();
+  }, [navigate]);
+
+  if (loading) return <div>Carregando...</div>;
+  return authenticated ? children : null;
 }
 
 function App() {
@@ -45,14 +74,7 @@ function App() {
       <IdleLogout />
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/*"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/*" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       </Routes>
     </Router>
   );

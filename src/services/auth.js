@@ -1,34 +1,30 @@
-import { api } from './api';
+// src/services/supabaseAuth.js
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-export const login = async (username, password) => {
-  const res = await fetch('https://controle-familiar.onrender.com/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+export { supabase };
+
+// Login com Google
+export const loginWithGoogle = () => {
+  return supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'https://controle-familiar-frontend.vercel.app/auth/callback.html'
+    }
   });
-
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.error || 'Credenciais inválidas');
-  }
-
-  const data = await res.json();
-  localStorage.setItem('token', data.access_token);
-  return data;
 };
 
-export const checkAuthStatus = async () => {
-  try {
-    const data = await api('auth/status');
-    return data;
-  } catch {
-    localStorage.removeItem('token');
-    return { logged_in: false };
-  }
-};
-
+// Logout
 export const logout = () => {
-  localStorage.removeItem('token');
-  // Redireciona para login
-  window.location.href = '/login';
+  return supabase.auth.signOut();
+};
+
+// Verifica se está logado
+export const checkAuthStatus = async () => {
+  const {  { session } } = await supabase.auth.getSession();
+  return { logged_in: !!session, user: session?.user || null };
 };
