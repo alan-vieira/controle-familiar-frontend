@@ -3,20 +3,13 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-
-// Importa o Supabase via CDN
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import supabase from './lib/supabaseClient'; // ✅ Corrigido: caminho relativo DENTRO de src/
 
 function IdleLogout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+    const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutos
     let timer;
 
     const handleLogout = async () => {
@@ -50,19 +43,28 @@ function PrivateRoute({ children }) {
 
   useEffect(() => {
     const checkSession = async () => {
-      // ✅ Corrigido: destructuring correto
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      try {
+        const {  { session } } = await supabase.auth.getSession();
+        if (!session) {
+          navigate('/login', { replace: true });
+        } else {
+          setAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
         navigate('/login', { replace: true });
-      } else {
-        setAuthenticated(true);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     checkSession();
   }, [navigate]);
 
-  if (loading) return <div>Carregando...</div>;
+  if (loading) {
+    return <div className="p-6 text-center">Carregando autenticação...</div>;
+  }
+
   return authenticated ? children : null;
 }
 

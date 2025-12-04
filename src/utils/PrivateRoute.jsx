@@ -1,14 +1,7 @@
 // src/utils/PrivateRoute.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Importa o Supabase via CDN (sem npm install)
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import supabase from '../lib/supabaseClient';
 
 function PrivateRoute({ children }) {
   const navigate = useNavigate();

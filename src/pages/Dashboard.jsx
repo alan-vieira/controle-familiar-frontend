@@ -1,15 +1,7 @@
 // src/pages/Dashboard.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// ✅ Corrigido: removido espaço extra
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-
+import supabase from '../lib/supabaseClient';
 import Header from '../components/Header';
 import Navigation from '../components/Navigation';
 import DespesasTable from '../components/DespesasTable';
