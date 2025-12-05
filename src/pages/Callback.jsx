@@ -1,57 +1,28 @@
 // src/pages/Callback.jsx
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 
 export default function Callback() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const handleCallback = async () => {
-      try {
-        // Check for error in URL parameters first
-        const errorDescription = searchParams.get('error_description');
-        const error = searchParams.get('error');
+      // Supabase lê automaticamente code/state da URL e finaliza o PKCE
+      const {  { error } } = await supabase.auth.getSessionFromUrl();
 
-        if (error || errorDescription) {
-          console.error('OAuth error:', error || errorDescription);
-          alert(`Erro na autenticação: ${errorDescription || error}`);
-          navigate('/login');
-          return;
-        }
-
-        // For OAuth callbacks in a SPA, we need to use handleAuthCallback
-        // This method processes the URL fragment containing the OAuth tokens
-        const { data, error: callbackError } = await supabase.auth.exchangeCodeForSession();
-
-        if (callbackError) {
-          console.error('Erro no callback do OAuth:', callbackError.message);
-          alert('Falha na autenticação. Tente novamente.');
-          navigate('/login');
-          return;
-        }
-
-        // If we have a session, redirect to dashboard
-        if (data?.session) {
-          console.log('Login bem-sucedido, redirecionando...');
-          navigate('/');
-        } else {
-          // If no session, redirect to login
-          console.log('Nenhuma sessão encontrada, redirecionando para login');
-          navigate('/login');
-        }
-      } catch (err) {
-        console.error('Erro inesperado no callback:', err);
-        alert('Erro inesperado. Tente novamente.');
-        navigate('/login');
+      if (error) {
+        console.error('Erro no callback do OAuth:', error.message);
+        alert(`Falha na autenticação: ${error.message}`);
+        navigate('/login', { replace: true });
+      } else {
+        console.log('Login bem-sucedido!');
+        navigate('/', { replace: true }); // ou '/despesas'
       }
     };
 
-    // Delay the callback processing slightly to ensure URL params are available
-    const timer = setTimeout(handleCallback, 100);
-    return () => clearTimeout(timer);
-  }, [navigate, searchParams]);
+    handleCallback();
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

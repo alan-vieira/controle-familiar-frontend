@@ -1,15 +1,21 @@
 // src/pages/OAuthCallback.jsx
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import  supabase  from '../lib/supabaseClient'; // named export ou default, conforme seu supabaseClient.js
+import { useNavigate } from 'react-router-dom';
+import supabase from '../lib/supabaseClient';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const handleCallback = async () => {
-      // O Supabase lê automaticamente o code da URL e usa o code_verifier do localStorage
+      // Verifica se a URL contém os parâmetros esperados
+      const urlParams = new URLSearchParams(window.location.search);
+      if (!urlParams.has('code')) {
+        console.warn('OAuthCallback acessado sem código de autorização');
+        navigate('/login', { replace: true });
+        return;
+      }
+
       const { error } = await supabase.auth.getSessionFromUrl();
 
       if (error) {
@@ -17,6 +23,7 @@ export default function OAuthCallback() {
         alert(`Falha na autenticação: ${error.message}`);
         navigate('/login', { replace: true });
       } else {
+        // Sucesso: redireciona para a página inicial
         navigate('/', { replace: true });
       }
     };
@@ -24,5 +31,5 @@ export default function OAuthCallback() {
     handleCallback();
   }, [navigate]);
 
-  return <div>Processando login com Google...</div>;
+  return <div style={{ padding: '2rem', textAlign: 'center' }}>Processando login com Google...</div>;
 }

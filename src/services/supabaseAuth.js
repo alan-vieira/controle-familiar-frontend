@@ -1,4 +1,6 @@
 // src/services/supabaseAuth.js
+import supabase from '../lib/supabaseClient';
+
 export const loginWithGoogle = () => {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
