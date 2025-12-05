@@ -1,20 +1,34 @@
-// src/services/supabaseAuth.js
-import supabase from '../lib/supabaseClient';
+import { api } from './api';
 
-export const loginWithGoogle = () => {
-  return supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://controle-familiar-frontend.vercel.app/auth/callback'
-    }
+export const login = async (username, password) => {
+  const res = await fetch('https://controle-familiar.onrender.com/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
   });
-};
 
-export const logout = () => {
-  return supabase.auth.signOut();
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Credenciais inválidas');
+  }
+
+  const data = await res.json();
+  localStorage.setItem('token', data.access_token);
+  return data;
 };
 
 export const checkAuthStatus = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return { logged_in: !!session, user: session?.user || null };
+  try {
+    const data = await api('auth/status');
+    return data;
+  } catch {
+    localStorage.removeItem('token');
+    return { logged_in: false };
+  }
+};
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  // Redireciona para login
+  window.location.href = '/login';
 };

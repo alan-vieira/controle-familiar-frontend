@@ -1,16 +1,7 @@
 // src/services/api.js
-import supabase from '../lib/supabaseClient';
-
-const BASE_URL = 'https://controle-familiar.onrender.com/api'; // ✅ sem espaços
-
 export const api = async (endpoint, options = {}) => {
-  let token = null;
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    token = session?.access_token;
-  } catch (err) {
-    // Ignora erro de sessão
-  }
+  const token = localStorage.getItem('token');
+  const BASE_URL = 'https://controle-familiar.onrender.com/api';
 
   const config = {
     headers: {
@@ -33,9 +24,9 @@ export const api = async (endpoint, options = {}) => {
 
   if (!res.ok) {
     if (res.status === 401) {
-      await supabase.auth.signOut();
-      // Não redireciona aqui — deixa o componente tratar
-      throw new Error('Não autenticado');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return;
     }
 
     let errMsg = `Erro ${res.status}`;

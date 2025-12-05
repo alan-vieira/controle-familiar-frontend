@@ -1,32 +1,22 @@
 // src/utils/PrivateRoute.jsx
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
 
 function PrivateRoute({ children }) {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login', { replace: true });
-      } else {
-        setAuthenticated(true);
-      }
-      setLoading(false);
-    };
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, navigate]);
 
-    checkSession();
-  }, [navigate]);
-
-  if (loading) {
-    return <div className="p-6">Carregando...</div>;
+  if (!token) {
+    return null;
   }
 
-  return authenticated ? children : null;
+  return children;
 }
 
 export default PrivateRoute;

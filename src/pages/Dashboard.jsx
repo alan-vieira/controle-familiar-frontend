@@ -1,7 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
+import { useState } from 'react';
 import Header from '../components/Header';
 import Navigation from '../components/Navigation';
 import DespesasTable from '../components/DespesasTable';
@@ -19,6 +17,7 @@ const validarMes = (valor) => {
   const [anoStr, mesStr] = valor.split('-');
   const ano = parseInt(anoStr, 10);
   const mes = parseInt(mesStr, 10);
+  // Aceita só anos razoáveis (2000-2030) e meses válidos (1-12)
   if (isNaN(ano) || isNaN(mes) || ano < 2000 || ano > 2030 || mes < 1 || mes > 12) {
     return null;
   }
@@ -26,31 +25,13 @@ const validarMes = (valor) => {
 };
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Despesas');
   const [mesSelecionado, setMesSelecionado] = useState(getMesAtual());
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      // ✅ Corrigido: destructuring correto
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login', { replace: true });
-      } else {
-        setLoading(false);
-      }
-    };
-    checkAuth();
-  }, [navigate]);
-
-  if (loading) {
-    return <div className="p-6">Carregando...</div>;
-  }
 
   const handleMesChange = (e) => {
     const mesValido = validarMes(e.target.value);
     if (mesValido) setMesSelecionado(mesValido);
+    // Valores inválidos (0002-11, etc.) são ignorados silenciosamente
   };
 
   const abasComMes = ['Despesas', 'Rendas', 'Resumo'];
