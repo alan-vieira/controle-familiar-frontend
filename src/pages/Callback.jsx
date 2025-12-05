@@ -9,7 +9,7 @@ export default function Callback() {
   useEffect(() => {
     const handleCallback = async () => {
       // Supabase lê automaticamente code/state da URL e finaliza o PKCE
-      const {  { error } } = await supabase.auth.getSessionFromUrl();
+      const { data: { error } } = await supabase.auth.getSessionFromUrl();
 
       if (error) {
         console.error('Erro no callback do OAuth:', error.message);
