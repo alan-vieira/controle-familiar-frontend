@@ -7,31 +7,27 @@ export default function OAuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-  // Não faça nada — a sessão é processada automaticamente
-    const check = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      } else {
-        navigate('/login');
-      }
-    };
-    check();
-  }, [navigate]);
+    // ✅ Função ASSÍNCRONA dentro do useEffect
+    const handleCallback = async () => {
+      try {
+        // ✅ await só pode estar DENTRO de async
+        const {  { error } } = await supabase.auth.getSessionFromUrl();
 
-
-      if (error) {
-        console.error('Erro no OAuth callback:', error.message);
-        alert(`Falha na autenticação: ${error.message}`);
+        if (error) {
+          console.error('Erro no callback:', error.message);
+          navigate('/login', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      } catch (err) {
+        console.error('Erro inesperado:', err);
         navigate('/login', { replace: true });
-      } else {
-        // Sucesso: redireciona para a página inicial
-        navigate('/', { replace: true });
       }
     };
 
+    // ✅ Chama a função async
     handleCallback();
   }, [navigate]);
 
-  return <div style={{ padding: '2rem', textAlign: 'center' }}>Processando login com Google...</div>;
+  return <div>Processando login...</div>;
 }
