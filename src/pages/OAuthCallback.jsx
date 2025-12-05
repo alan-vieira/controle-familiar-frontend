@@ -11,7 +11,7 @@ export default function OAuthCallback() {
     const handleCallback = async () => {
       try {
         // ✅ await só pode estar DENTRO de async
-        const {  { error } } = await supabase.auth.getSessionFromUrl();
+        const { data: { error } } = await supabase.auth.getSessionFromUrl();
 
         if (error) {
           console.error('Erro no callback:', error.message);
