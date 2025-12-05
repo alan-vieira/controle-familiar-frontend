@@ -7,14 +7,17 @@ export default function OAuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleCallback = async () => {
-      // Verifica se a URL contém os parâmetros esperados
-      const urlParams = new URLSearchParams(window.location.search);
-      if (!urlParams.has('code')) {
-        console.warn('OAuthCallback acessado sem código de autorização');
-        navigate('/login', { replace: true });
-        return;
+  // Não faça nada — a sessão é processada automaticamente
+    const check = async () => {
+      const {  { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      } else {
+        navigate('/login');
       }
+    };
+    check();
+  }, [navigate]);
 
       const { error } = await supabase.auth.getSessionFromUrl();
 
