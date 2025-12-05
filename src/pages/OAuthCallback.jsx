@@ -19,7 +19,6 @@ export default function OAuthCallback() {
     check();
   }, [navigate]);
 
-      const { error } = await supabase.auth.getSessionFromUrl();
 
       if (error) {
         console.error('Erro no OAuth callback:', error.message);
