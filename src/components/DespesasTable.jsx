@@ -105,7 +105,7 @@ export default function DespesasTable({ mesAno }) {
               <tr key={d.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">{formatDateToBR(d.data_compra)}</td>
                 <td className="px-4 py-3">{d.descricao}</td>
-                <td className="px-4 py-3">{d.colaborador || '—'}</td> {/* ← Novo dado */}
+                <td className="px-4 py-3">{d.colaborador_nome || '—'}</td> {/* ← Novo dado */}
                 <td className="px-4 py-3">{CATEGORIA_LABELS[d.categoria] || d.categoria}</td>
                 <td className="px-4 py-3">{TIPO_PG_LABELS[d.tipo_pg] || '—'}</td> {/* ← Novo dado */}
                 <td className="px-4 py-3 text-right text-red-600">{formatCurrency(d.valor)}</td>
@@ -129,7 +129,7 @@ export default function DespesasTable({ mesAno }) {
                   <p className="font-semibold text-base">{d.descricao}</p>
                   <p className="text-sm text-gray-500">{formatDateToBR(d.data_compra)}</p>
                   <p className="text-sm mt-1">
-                    <span className="font-medium">Colaborador:</span> {d.colaborador || '—'}
+                    <span className="font-medium">Colaborador:</span> {d.colaborador_nome || '—'}
                   </p>
                   <p className="text-sm mt-1">
                     <span className="font-medium">Categoria:</span> {CATEGORIA_LABELS[d.categoria] || d.categoria}
