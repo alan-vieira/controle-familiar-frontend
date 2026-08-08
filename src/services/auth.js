@@ -73,7 +73,8 @@ export function isAuthenticated() {
  */
 export async function login(username, password) {
   try {
-    const data = await apiPost('/auth/login', { username, password });
+    // CORREÇÃO: /api/auth/login em vez de /api/login
+    const data = await apiPost('/api/auth/login', { username, password });
     
     if (data.access_token) {
       setToken(data.access_token);
@@ -84,7 +85,7 @@ export async function login(username, password) {
   } catch (error) {
     return { 
       success: false, 
-      error: error.data?.msg || 'Erro ao fazer login' 
+      error: error.data?.msg || error.message || 'Erro ao fazer login' 
     };
   }
 }
@@ -96,7 +97,8 @@ export async function logout() {
   try {
     const token = getToken();
     if (token) {
-      await apiPost('/auth/logout', {}, { 
+      // CORREÇÃO: /api/auth/logout em vez de /api/logout
+      await apiPost('/api/auth/logout', {}, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
     }
@@ -114,7 +116,7 @@ export async function logout() {
  */
 export async function validateTokenWithServer() {
   try {
-    const response = await api('/auth/validate', { method: 'GET' });
+    const response = await api('/api/auth/validate', { method: 'GET' });
     return response.valid === true;
   } catch (error) {
     return false;

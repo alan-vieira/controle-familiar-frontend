@@ -5,6 +5,17 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-br/).
 
+## [0.1.1] - 2026-08-09
+
+### Fixed
+- Corrigidos paths de autenticação para `/api/auth/login` e `/api/auth/logout` (estavam como `/api/login` e `/api/logout`, retornando 404).
+- Alinhamento com endpoints reais do backend (documentação do README estava desatualizada).
+
+### Changed
+- Mensagens de erro agora incluem `error.message` como fallback adicional.
+
+---
+
 ## [0.1.0] - 2026-08-09
 
 ### Added
