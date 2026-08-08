@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Artefatos de análise (não versionar)
+AUDITORIA_RELATORIO.md
