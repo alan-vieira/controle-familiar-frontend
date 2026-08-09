@@ -90,9 +90,11 @@ export async function logout() {
 
 export async function validateTokenWithServer() {
   try {
-    const response = await api('/api/auth/validate', { method: 'GET' });
-    return response.valid === true;
+    // ✅ CORRIGIDO: /api/auth/status em vez de /api/auth/validate
+    const response = await api('/api/auth/status', { method: 'GET' });
+    return response.valid === true || response.logged_in === true;
   } catch (error) {
+    console.warn('Validação de token falhou:', error);
     return false;
   }
 }

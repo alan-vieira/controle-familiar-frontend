@@ -5,6 +5,25 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-br/).
 
+## [0.1.4] - 2026-08-09
+
+### Fixed
+- **Endpoint de validação de sessão corrigido:** Frontend chamava `/api/auth/validate` (404 inexistente), agora usa `/api/auth/status` (endpoint real do backend que retorna `{logged_in: true, user: {...}}`).
+- **PWA configurado para auto-update:** Adicionados `skipWaiting`, `clientsClaim` e `cleanupOutdatedCaches` no `vite-plugin-pwa` para forçar atualização automática do Service Worker quando nova versão é deployada.
+- **Cache busting ativado:** `manifest.version` sincronizado com `package.json` version para invalidar cache automaticamente em novas versões.
+
+### Changed
+- `package.json` versão atualizada para `0.1.4` (era `0.1.0` fixo, impedindo cache busting).
+- `vite.config.js` PWA configurado completamente com opções de auto-update.
+- `src/services/auth.js` função `validateTokenWithServer()` agora chama `/api/auth/status` e verifica campo `logged_in`.
+
+### Impact
+- Resolve problema de desktop preso em bundle antigo (Service Worker não atualizava).
+- Validação de sessão agora funciona corretamente (antes falhava silenciosamente).
+- Futuros deploys atualizarão automaticamente sem necessidade de limpar cache manual.
+
+---
+
 ## [0.1.3] - 2026-08-09
 
 ### Fixed

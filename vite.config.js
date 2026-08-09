@@ -8,10 +8,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      skipWaiting: true,              // ✅ NOVO: SW novo assume controle imediato
+      clientsClaim: true,             // ✅ NOVO: SW assume clientes existentes
+      cleanupOutdatedCaches: true,    // ✅ NOVO: remove caches de versões antigas
       devOptions: {
         enabled: false // PWA só ativo em produção
       },
       manifest: {
+        version: '0.1.4',             // ✅ NOVO: cache busting (sincronizar com package.json)
         name: 'Controle Familiar',
         short_name: 'ControleFam',
         description: 'Gerenciamento financeiro familiar',
