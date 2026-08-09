@@ -10,44 +10,39 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 segundos
 
 /**
+ * Normaliza o endpoint para garantir barra inicial e prefixo /api
+ */
+function buildUrl(endpoint) {
+  // Garante que começa com /
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  // Se já tem /api, usa como está (caso do login: /api/auth/login)
+  // Se não tem, adiciona /api
+  const fullPath = path.startsWith('/api/') ? path : `/api${path}`;
+  
+  return `${API_URL}${fullPath}`;
+}
+
+/**
  * Verifica se o erro é retryable
  * (apenas erros de rede e 5xx, nunca 4xx)
  */
 function isRetryableError(error) {
-  // Erros de rede (fetch falhou completamente)
   if (!error.response) return true;
-  
-  // Erros 5xx (server error)
   const status = error.response.status;
   return status >= 500 && status < 600;
 }
 
-/**
- * Delay com Promise
- */
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-/**
- * Interceptador de resposta para lidar com 401
- */
 function handle401() {
-  // Limpa o token
   localStorage.removeItem('token');
-  
-  // Dispara evento customizado para o PrivateRoute ouvir
   window.dispatchEvent(new CustomEvent('auth:expired'));
-  
-  // Não recarrega a página! O PrivateRoute vai redirecionar
   console.warn('Token expirado, redirecionando para login...');
 }
 
 /**
  * Faz uma requisição HTTP com retry e timeout
- * @param {string} endpoint - Endpoint da API (ex: '/despesas')
- * @param {Object} options - Opções do fetch
- * @param {number} options.timeout - Timeout em ms
- * @param {number} options.retries - Número de tentativas restantes
- * @returns {Promise<any>} - Resposta JSON
  */
 export async function api(endpoint, options = {}) {
   const {
@@ -56,7 +51,6 @@ export async function api(endpoint, options = {}) {
     ...fetchOptions
   } = options;
 
-  // Adiciona token de autenticação
   const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
@@ -64,12 +58,12 @@ export async function api(endpoint, options = {}) {
     ...fetchOptions.headers,
   };
 
-  // Cria AbortController para timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    // AQUI ESTÁ A CORREÇÃO: usar buildUrl() em vez de concatenação direta
+    const response = await fetch(buildUrl(endpoint), {
       ...fetchOptions,
       headers,
       signal: controller.signal,
@@ -77,13 +71,11 @@ export async function api(endpoint, options = {}) {
 
     clearTimeout(timeoutId);
 
-    // Trata 401 (token expirado)
     if (response.status === 401) {
       handle401();
       throw new Error('Sessão expirada. Faça login novamente.');
     }
 
-    // Trata outros erros
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const error = new Error(errorData.msg || `Erro ${response.status}`);
@@ -92,7 +84,6 @@ export async function api(endpoint, options = {}) {
       throw error;
     }
 
-    // Retorna JSON ou texto vazio
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
@@ -102,17 +93,15 @@ export async function api(endpoint, options = {}) {
   } catch (error) {
     clearTimeout(timeoutId);
 
-    // AbortError = timeout
     if (error.name === 'AbortError') {
       const timeoutError = new Error(`Request timeout (${timeout}ms)`);
       timeoutError.response = null;
       error = timeoutError;
     }
 
-    // Retry para erros retryable
     if (retries > 0 && isRetryableError(error)) {
       console.log(`Retry ${MAX_RETRIES - retries + 1}/${MAX_RETRIES}...`);
-      await delay(RETRY_DELAY * (MAX_RETRIES - retries + 1)); // backoff progressivo
+      await delay(RETRY_DELAY * (MAX_RETRIES - retries + 1));
       return api(endpoint, { ...options, retries: retries - 1 });
     }
 
@@ -120,9 +109,6 @@ export async function api(endpoint, options = {}) {
   }
 }
 
-/**
- * Métodos HTTP convenientes
- */
 export const apiGet = (endpoint, options) => api(endpoint, { ...options, method: 'GET' });
 export const apiPost = (endpoint, data, options) => api(endpoint, { ...options, method: 'POST', body: JSON.stringify(data) });
 export const apiPut = (endpoint, data, options) => api(endpoint, { ...options, method: 'PUT', body: JSON.stringify(data) });
