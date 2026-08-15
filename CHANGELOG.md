@@ -5,6 +5,19 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-br/).
 
+## [0.2.0] - 2026-08-15
+
+### Security
+- `Header.jsx`: logout agora usa `useNavigate` + `auth.logout()` em vez de `window.location.href`, evitando full reload e preservando o fluxo SPA.
+
+### Removed
+- `IdleLogout` em `App.jsx` removido — duplicava a lógica já presente em `PrivateRoute` (interceptor 401 + eventos `auth:expired`/`auth:logout`) e forçava `window.location.reload()`, quebrando o estado React a cada 15 minutos.
+
+### Fixed
+- Correção do aviso "sem page reload" em `services/api.js:40` que contradizia o comportamento do `IdleLogout`.
+
+---
+
 ## [0.1.4] - 2026-08-09
 
 ### Fixed

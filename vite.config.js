@@ -15,7 +15,7 @@ export default defineConfig({
         enabled: false // PWA só ativo em produção
       },
       manifest: {
-        version: '0.1.4',             // ✅ NOVO: cache busting (sincronizar com package.json)
+        version: '0.2.0',             // ← era '0.1.4'
         name: 'Controle Familiar',
         short_name: 'ControleFam',
         description: 'Gerenciamento financeiro familiar',

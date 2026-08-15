@@ -1,10 +1,12 @@
-// src/components/Header.jsx
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../services/auth';
 
 export default function Header() {
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();               // chama a API + remove token + dispara evento
+    navigate('/login', { replace: true });
   };
 
   return (
