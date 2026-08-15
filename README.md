@@ -1,30 +1,34 @@
 # Controle Financeiro Familiar — Frontend
 
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel)](https://controle-familiar-frontend.vercel.app)
-[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-5+-646CFF?logo=vite)](https://vitejs.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-Not%20directly%20used-3ECF8E?logo=supabase)](https://supabase.com)
+[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-5.0.12-646CFF?logo=vite)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
+[![PWA](https://img.shields.io/badge/PWA-vite--plugin--pwa-5A0FC8?logo=pwa)](https://vite-pwa-org.netlify.app/)
+[![Release](https://img.shields.io/badge/Release-v0.2.0-blue)](https://github.com/alan-vieira/controle-familiar-frontend/releases/tag/v0.2.0)
+[![Node](https://img.shields.io/badge/Node-%3E%3D18-339933?logo=node.js)](https://nodejs.org)
 
-Aplicação web feita em **React + Vite** para o sistema **Controle Financeiro Familiar**.  
-Interface responsiva para cadastro de despesas, rendas, colaboradores e visualização do resumo mensal, com foco em usabilidade e clareza financeira.
+Aplicação web feita em **React 18 + Vite 5** para o sistema **Controle Financeiro Familiar**.
 
-> ⚠️ **Importante**: O frontend **não se conecta diretamente ao Supabase**. Toda comunicação com o banco de dados é feita via **API backend** (Flask).
+Interface responsiva (mobile-first) para cadastro de despesas, rendas, colaboradores e visualização do resumo mensal com divisão proporcional, com foco em usabilidade e clareza financeira.
+
+> ⚠️ **Importante**: O frontend **não se conecta diretamente ao Supabase**. Toda comunicação com o banco de dados é feita via **API backend** (Flask 3.x + PostgreSQL).
 
 ---
 
 ## 🌐 Links Úteis
 
-- **App em produção**: https://controle-familiar-frontend.vercel.app  
-- **Backend (API)**: https://github.com/alan-vieira/controle-familiar  
-- **API em produção**: https://controle-familiar.onrender.com  
+- **App em produção**: https://controle-familiar-frontend.vercel.app
+- **Backend (API)**: https://github.com/alan-vieira/controle-familiar
+- **API em produção**: https://controle-familiar.onrender.com
 - **Banco de dados**: Supabase (acessado apenas pelo backend)
 
 ---
 
 ## 📦 Funcionalidades
 
-- ✅ Tela de **login/logout** (gerenciada via cookies/sessão da API)
-- 👥 Gerenciamento de **colaboradores**
+- ✅ Tela de **login/logout** (JWT em localStorage + header Bearer, fluxo SPA-safe)
+- 👥 Gerenciamento de **colaboradores** (CRUD completo)
 - 💸 Registro e listagem de **despesas** com:
   - Data
   - Descrição
@@ -32,87 +36,214 @@ Interface responsiva para cadastro de despesas, rendas, colaboradores e visualiz
   - Valor (formatado em **BRL**: `R$ 1.234,56`)
 - 💰 Registro e listagem de **rendas mensais**
 - 📅 Configuração do **dia de fechamento** do mês
-- 📊 Botão **“Carregar Resumo”** com cálculo automático de:
+- 📊 **Resumo mensal** com cálculo automático de:
   - Total de rendas
   - Total de despesas
   - Saldo líquido
-- 📱 Layout **responsivo** (funciona bem em celulares e desktops)
+- ⚖️ **Divisão proporcional** por colaborador (marcar/desmarcar pago)
+- 📱 Layout **responsivo mobile-first** (Tailwind CSS 3.4)
+- 🔄 **PWA** (auto-update, installable, offline-capable)
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Stack (versões reais do `package.json`)
 
-- **Framework**: React (com Hooks)
-- **Bundler**: Vite
-- **Estilização**: CSS puro (ou Tailwind/CSS Modules, se aplicável — ajuste conforme seu uso)
-- **Gerenciamento de estado**: Local state + chamadas HTTP diretas (`fetch`)
-- **Formatação de moeda**: `Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })`
-- **Deploy**: Vercel
+| Tecnologia | Versão | Papel |
+|------------|--------|-------|
+| React | 18.2.0 | UI library |
+| React DOM | 18.2.0 | Renderer |
+| React Router DOM | 6.22.0 | Roteamento SPA |
+| Vite | 5.0.12 | Build tool / dev server |
+| @vitejs/plugin-react | 4.2.1 | Plugin React para Vite |
+| Tailwind CSS | 3.4.1 | Utility-first CSS |
+| PostCSS | 8.4.35 | Processador CSS |
+| Autoprefixer | 10.4.18 | Prefixos vendor automáticos |
+| vite-plugin-pwa | 0.20.0 | Service Worker + Manifest (Workbox) |
+| Node.js | >= 18 | Runtime (definido em `engines`) |
 
 ---
 
 ## 🚀 Rodando Localmente
 
-1. **Clone o repositório**
-   ```bash
-   git clone https://github.com/alan-vieira/controle-familiar-frontend.git
-   cd controle-familiar-frontend
-   ```
+### 1. Clone o repositório
+```bash
+git clone https://github.com/alan-vieira/controle-familiar-frontend.git
+cd controle-familiar-frontend
+```
 
-2. **Instale as dependências**
+### 2. Instale as dependências
+```bash
+npm install
+```
 
-    ```bash
-    npm install
-    ```
+### 3. Configure as variáveis de ambiente
 
-3. **Configure as variáveis de ambiente**
+Copie `.env.example` para `.env.local` na raiz do projeto:
 
-Crie um arquivo .env.local na raiz do projeto:
+```bash
+cp .env.example .env.local
+```
 
-    
-    VITE_API_BASE_URL=http://localhost:5000
+Edite `.env.local` se necessário (o padrão já aponta para produção):
 
->🔁 Em produção (Vercel), essa variável deve apontar para:
->`VITE_API_BASE_URL=https://controle-familiar.onrender.com`
+```
+# Desenvolvimento local
+# VITE_API_URL=http://localhost:5000
 
-4. **Inicie o servidor de desenvolvimento**
+# Produção (padrão)
+VITE_API_URL=https://controle-familiar.onrender.com
+```
 
-    ```bash
-    npm run dev
-    ```
+> ⚠️ **Aviso CORS**: Para desenvolvimento local, o backend **precisa** ter `http://localhost:5173` configurado em `CORS_ORIGINS` (variável de ambiente do Flask).
 
-Acesse http://localhost:5173 (ou a porta exibida no terminal)
+### 4. Inicie o servidor de desenvolvimento
+```bash
+npm run dev
+```
 
-## 📤 Deploy no Vercel
+Acesse http://localhost:5173 (porta configurada em `vite.config.js`).
 
-O projeto está configurado para auto-deploy no Vercel a partir da branch `main`.
+---
 
-Para configurar manualmente:
+## 🏗️ Build de Produção
 
-1. Conecte este repositório ao Vercel
-2. Em **Environment Variables**, adicione:
+```bash
+# Build otimizado para produção (gera pasta dist/)
+npm run build
 
-> ✅ Não é necessário build script personalizado
+# Preview local do build de produção
+npm run preview
+```
 
-## 🔌 Integração com a API
+- Output: pasta `dist/` (configurado em `vite.config.js:43`)
+- Build command no Vercel: `npm run build`
 
-Todas as requisições são feitas para os endpoints da sua API Flask:
+---
 
-- Login: `POST /login`
-- Logout: `POST /logout`
-- Dados: `GET|POST /api/colaboradores`, `/api/despesas`, etc.
+## ⚙️ Variáveis de Ambiente
 
-A autenticação é mantida via **cookies HTTP-only** (gerenciados pelo backend), então o frontend **não armazena tokens**.
+| Variável | Obrigatória | Descrição | Exemplo (dev) | Exemplo (prod) |
+|----------|-------------|-----------|---------------|----------------|
+| `VITE_API_URL` | Sim | URL base da API Flask (sem `/api` no final) | `http://localhost:5000` | `https://controle-familiar.onrender.com` |
 
-## 📝 Observações
+> ❌ **Não existe** `VITE_API_BASE_URL`. O nome real é `VITE_API_URL` (prefixo `VITE_` é obrigatório para Vite expor ao cliente).
 
-- Valores monetários são exibidos no formato **brasileiro**: `R$ 1.234,56`
-- O frontend **não valida regras de negócio complexas** — essa responsabilidade está na API
-- Mensagens de erro da API são exibidas diretamente ao usuário (melhorar com toast/feedback visual, se desejado)
+---
+
+## 📁 Estrutura de Pastas
+
+```
+src/
+├── components/     # Componentes reutilizáveis (Header, Forms, Tabelas, Cards)
+├── pages/          # Páginas de rota (Login, Dashboard)
+├── services/       # Cliente HTTP (api.js) + Auth (auth.js)
+├── utils/          # Helpers (PrivateRoute, formatters)
+├── config/         # Constantes de configuração (se houver)
+├── App.jsx         # Roteamento principal + PrivateRoute
+├── main.jsx        # Entry point (React 18 createRoot)
+└── index.css       # Tailwind directives + globals
+public/
+├── icon-192.png    # PWA icon 192x192
+├── icon-512.png    # PWA icon 512x512
+└── vite.svg
+```
+
+---
+
+## 🔐 Autenticação (Realidade Técnica)
+
+### Como funciona hoje
+- **Token**: JWT access token (expiração 1h) armazenado em `localStorage` (chave `token`)
+- **Envio**: Header `Authorization: Bearer <token>` em todas as requisições autenticadas
+- **Interceptor 401** (`services/api.js:38-42`): Ao receber 401, remove token e dispara evento `auth:expired`
+- **PrivateRoute** (`utils/PrivateRoute.jsx`): Ouve eventos `auth:expired` e `auth:logout`, redireciona para `/login` via React Router (`Navigate`) — **sem full reload**
+- **Logout** (`Header.jsx` + `auth.logout()`): Chama `POST /api/auth/logout` (revoga token no backend) + `navigate('/login', { replace: true })`
+- **Validação de sessão no mount**: `auth.validateTokenWithServer()` chama `GET /api/auth/status`
+
+### ⚠️ Limitação Conhecida (P1 no Roadmap)
+> **O token fica exposto a XSS por estar em `localStorage`.**  
+> Migração planejada para **cookies HttpOnly + refresh token rotation** (backend já expõe `/api/auth/refresh`, ainda não consumido pelo frontend).
+
+---
+
+## 🔌 Endpoints Consumidos (todos com prefixo `/api`)
+
+| Método | Rota | Uso |
+|--------|------|-----|
+| POST | `/api/auth/login` | Login (retorna `access_token`) |
+| POST | `/api/auth/logout` | Revogar token no backend |
+| GET | `/api/auth/status` | Validar sessão no mount (`logged_in: true`) |
+| POST | `/api/auth/refresh` | **Existe no backend, ainda não usado** |
+| GET/POST/PUT/DELETE | `/api/colaboradores` | CRUD colaboradores |
+| GET/POST/PUT/DELETE | `/api/despesas?mes_vigente=YYYY-MM` | CRUD despesas |
+| GET/POST/PUT/DELETE | `/api/rendas?mes=YYYY-MM` | CRUD rendas mensais |
+| GET | `/api/resumo/<YYYY-MM>` | Resumo do mês (path param) |
+| GET | `/api/divisao/<YYYY-MM>` | Status da divisão proporcional |
+| POST | `/api/divisao/<YYYY-MM>/marcar-pago` | Marcar parcela como paga |
+| POST | `/api/divisao/<YYYY-MM>/desmarcar-pago` | Desmarcar parcela |
+
+> O cliente HTTP (`services/api.js`) normaliza rotas via `buildUrl()` — garante prefixo `/api` e barra inicial.
+
+---
+
+## 🌐 Cliente HTTP (`services/api.js`)
+
+- **Timeout**: 30 segundos (acomoda cold start do Render free tier)
+- **Retry**: Exponencial (3 tentativas, 2s/4s/6s) — **apenas para 5xx e erros de rede** (nunca 4xx)
+- **Cancelamento**: `AbortController` por request
+- **Normalização**: `buildUrl()` injeta `/api` automaticamente
+- **Interceptor 401**: Dispara `window.dispatchEvent(new CustomEvent('auth:expired'))`
+
+---
+
+## 📱 PWA (Progressive Web App)
+
+Configurado via `vite-plugin-pwa` (Workbox) em `vite.config.js`:
+
+- **registerType**: `autoUpdate` (atualização automática do SW)
+- **skipWaiting**: `true` — novo SW assume controle imediato
+- **clientsClaim**: `true` — SW assume clientes existentes sem reload
+- **cleanupOutdatedCaches**: `true` — remove caches de versões antigas
+- **Manifest**: `version` sincronizado com `package.json` (cache busting automático)
+- **Ícones**: 192x192 e 512x512 em `public/`
+- **Dev**: PWA desabilitado (`devOptions.enabled: false`)
+
+---
+
+## 🚀 Deploy na Vercel
+
+- **Auto-deploy**: A cada push na branch `main`
+- **Build command**: `npm run build`
+- **Output directory**: `dist`
+- **SPA Rewrite**: `vercel.json` rewrites `/*` → `/index.html`
+- **Environment Variables** (configurar no painel da Vercel):
+  - `VITE_API_URL=https://controle-familiar.onrender.com`
+
+```json
+// vercel.json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+---
+
+## 📝 CHANGELOG
+
+Todas as mudanças seguem [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) + [SemVer](https://semver.org/lang/pt-br/).
+
+Veja **[CHANGELOG.md](CHANGELOG.md)** para histórico completo.
+
+### Releases recentes
+- **v0.2.0** — SPA-safe auth flow (removido `IdleLogout`; logout via `navigate`)
+- **v0.1.4** — PWA: validação de sessão via `/api/auth/status` + auto-update
+- **v0.1.3** — `resumo/{mesAno}` migrado para path param
+
+---
 
 ## 🙋 Autor
 
-Alan Silva Vieira
+**Alan Silva Vieira**
 
-- GitHub: @alan-vieira
+- GitHub: [@alan-vieira](https://github.com/alan-vieira)
 - Projeto: Controle Financeiro Familiar
