@@ -1,6 +1,5 @@
 // src/components/Navigation.jsx
 export default function Navigation({ activeTab, onTabChange }) {
-  // Nome interno (usado na lógica) → Nome de exibição (mostrado na tela)
   const tabs = [
     { id: 'Despesas', label: 'Desp' },
     { id: 'Rendas', label: 'Rend' },
@@ -14,14 +13,14 @@ export default function Navigation({ activeTab, onTabChange }) {
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}  // Envia o nome completo
+            onClick={() => onTabChange(tab.id)}
             className={`px-3 py-1.5 text-xs font-medium rounded whitespace-nowrap transition-colors ${
-              activeTab === tab.id  // Compara com o nome completo
+              activeTab === tab.id
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-200 border border-gray-200'
             }`}
           >
-            {tab.label}  // Mostra o nome abreviado
+            {tab.label}
           </button>
         ))}
       </div>
