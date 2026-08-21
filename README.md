@@ -1,12 +1,15 @@
 # Controle Financeiro Familiar — Frontend
 
-[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel)](https://controle-familiar-frontend.vercel.app)
-[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-5.0.12-646CFF?logo=vite)](https://vitejs.dev)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
-[![PWA](https://img.shields.io/badge/PWA-vite--plugin--pwa-5A0FC8?logo=pwa)](https://vite-pwa-org.netlify.app/)
-[![Release](https://img.shields.io/badge/Release-v0.2.0-blue)](https://github.com/alan-vieira/controle-familiar-frontend/releases/tag/v0.2.0)
-[![Node](https://img.shields.io/badge/Node-%3E%3D18-339933?logo=node.js)](https://nodejs.org)
+![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel)
+![React 18.2.0](https://img.shields.io/badge/React-18.2.0-61DAFB?logo=react)
+![Vite 5.0.12](https://img.shields.io/badge/Vite-5.0.12-646CFF?logo=vite)
+![Tailwind 3.4.1](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?logo=tailwind-css)
+![PWA](https://img.shields.io/badge/PWA-vite--plugin--pwa-5A0FC8?logo=pwa)
+![Release v0.4.0](https://img.shields.io/badge/Release-v0.4.0-blue)
+![Node 22.x](https://img.shields.io/badge/Node-22.x-339933?logo=node.js)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions)
+![Playwright](https://img.shields.io/badge/E2E-Playwright-2EAD33?logo=playwright)
 
 Aplicação web feita em **React 18 + Vite 5** para o sistema **Controle Financeiro Familiar**.
 
@@ -17,39 +20,25 @@ Interface responsiva (mobile-first) para cadastro de despesas, rendas, colaborad
 ---
 
 ## 🌐 Links Úteis
-
 - **App em produção**: https://controle-familiar-frontend.vercel.app
 - **Backend (API)**: https://github.com/alan-vieira/controle-familiar
 - **API em produção**: https://controle-familiar.onrender.com
 - **Banco de dados**: Supabase (acessado apenas pelo backend)
 
----
-
 ## 📦 Funcionalidades
-
-- ✅ Tela de **login/logout** (JWT em localStorage + header Bearer, fluxo SPA-safe)
-- 👥 Gerenciamento de **colaboradores** (CRUD completo)
-- 💸 Registro e listagem de **despesas** com:
-  - Data
-  - Descrição
-  - Categoria
-  - Valor (formatado em **BRL**: `R$ 1.234,56`)
-- 💰 Registro e listagem de **rendas mensais**
-- 📅 Configuração do **dia de fechamento** do mês
-- 📊 **Resumo mensal** com cálculo automático de:
-  - Total de rendas
-  - Total de despesas
-  - Saldo líquido
-- ⚖️ **Divisão proporcional** por colaborador (marcar/desmarcar pago)
-- 📱 Layout **responsivo mobile-first** (Tailwind CSS 3.4)
-- 🔄 **PWA** (auto-update, installable, offline-capable)
-
----
+- ✅ Tela de login/logout (JWT em localStorage + header Bearer, fluxo SPA-safe)
+- 👥 Gerenciamento de colaboradores (CRUD completo)
+- 💸 Registro e listagem de despesas com: Data, Descrição, Categoria, Valor (formatado em BRL: `R$ 1.234,56`)
+- 💰 Registro e listagem de rendas mensais
+- 📅 Configuração do dia de fechamento do mês
+- 📊 Resumo mensal com cálculo automático de: Total de rendas, Total de despesas, Saldo líquido
+- ⚖️ Divisão proporcional por colaborador (marcar/desmarcar pago) com cards responsivos e barra de progresso
+- 📱 Layout responsivo mobile-first (Tailwind CSS 3.4)
+- 🔄 PWA (auto-update, installable, offline-capable)
 
 ## 🛠️ Stack (versões reais do `package.json`)
-
 | Tecnologia | Versão | Papel |
-|------------|--------|-------|
+| --- | --- | --- |
 | React | 18.2.0 | UI library |
 | React DOM | 18.2.0 | Renderer |
 | React Router DOM | 6.22.0 | Roteamento SPA |
@@ -59,42 +48,40 @@ Interface responsiva (mobile-first) para cadastro de despesas, rendas, colaborad
 | PostCSS | 8.4.35 | Processador CSS |
 | Autoprefixer | 10.4.18 | Prefixos vendor automáticos |
 | vite-plugin-pwa | 0.20.0 | Service Worker + Manifest (Workbox) |
-| Node.js | >= 18 | Runtime (definido em `engines`) |
-
----
+| Node.js | 22.x | Runtime |
 
 ## 🚀 Rodando Localmente
 
-### 1. Clone o repositório
+### Opção 1: Desenvolvimento Tradicional (Node.js)
+
+### 1. Clone e instale dependências
 ```bash
 git clone https://github.com/alan-vieira/controle-familiar-frontend.git
 cd controle-familiar-frontend
-```
-
-### 2. Instale as dependências
-```bash
 npm install
 ```
 
-### 3. Configure as variáveis de ambiente
-
-Copie `.env.example` para `.env.local` na raiz do projeto:
-
+### 2. Configure variáveis de ambiente
 ```bash
 cp .env.example .env.local
 ```
+Edite `.env.local` se necessário (padrão aponta para produção)
 
-Edite `.env.local` se necessário (o padrão já aponta para produção):
-
-```
-# Desenvolvimento local
-# VITE_API_URL=http://localhost:5000
-
-# Produção (padrão)
-VITE_API_URL=https://controle-familiar.onrender.com
+### 3. Inicie o servidor de desenvolvimento
+```bash
+npm run dev
 ```
 
-> ⚠️ **Aviso CORS**: Para desenvolvimento local, o backend **precisa** ter `http://localhost:5173` configurado em `CORS_ORIGINS` (variável de ambiente do Flask).
+### Opção 2: Ambiente Docker (Fiel à Produção)
+```bash
+# Build e inicia o frontend em container Nginx otimizado
+docker compose up --build -d
+```
+
+Acesse http://localhost:8080
+Health check: http://localhost:8080/health
+
+### Opção 3: Ambiente Fullstack (DB + Backend + Frontend)
 
 ### 4. Inicie o servidor de desenvolvimento
 ```bash
@@ -235,6 +222,11 @@ Todas as mudanças seguem [Keep a Changelog](https://keepachangelog.com/pt-BR/1.
 Veja **[CHANGELOG.md](CHANGELOG.md)** para histórico completo.
 
 ### Releases recentes
+- **v0.4.0** — Infraestrutura completa: Docker, Playwright E2E, CI/CD e validação automatizada
+- **v0.3.3** — Correção final de bug visual na navbar (texto duplicado)
+- **v0.3.2** — Correção crítica de navegação entre abas (separação id vs label)
+- **v0.3.1** — Otimização visual da navbar (compacta, fontes text-xs, títulos abreviados)
+- **v0.3.0** — Cards responsivos na guia Resumo, avatares, badges e barra de progresso
 - **v0.2.0** — SPA-safe auth flow (removido `IdleLogout`; logout via `navigate`)
 - **v0.1.4** — PWA: validação de sessão via `/api/auth/status` + auto-update
 - **v0.1.3** — `resumo/{mesAno}` migrado para path param

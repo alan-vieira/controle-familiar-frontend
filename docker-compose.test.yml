@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: controle-familiar-frontend-test
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=https://controle-familiar.onrender.com
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test-network
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.42.0-jammy
+    container_name: playwright-e2e
+    depends_on:
+      frontend:
+        condition: service_healthy
+    environment:
+      - BASE_URL=http://frontend:80
+      - CI=true
+    volumes:
+      - ./:/app
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+    working_dir: /app
+    command: sh -c "npm ci 2>&1 | tail -20 && npx playwright install --with-deps chromium 2>&1 | tail -20 && npx playwright test --reporter=html"
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

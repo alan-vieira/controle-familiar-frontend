@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: controle-familiar-frontend
+    ports:
+      - "8080:80"
+    environment:
+      # Sobrescreve a URL da API em tempo de build se necessário
+      # (mas o ideal é já estar no .env.production)
+      - VITE_API_URL=https://controle-familiar.onrender.com
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

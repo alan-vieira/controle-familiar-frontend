@@ -1,0 +1,83 @@
+name: CI/CD Pipeline - Frontend
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+# Cancela execuções anteriores se um novo commit for pushado no mesmo PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-test:
+    name: 🐳 Build, Infra Validation & E2E Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout do código
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build da imagem Docker
+        run: docker compose build frontend
+
+      - name: 🚀 Subir container para validação
+        run: docker compose up -d frontend
+
+      - name: ⏳ Aguardar Health Check do Container
+        run: |
+          echo "Aguardando o container ficar healthy..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health | grep -q "OK"; then
+              echo "✅ Container está healthy!"
+              exit 0
+            fi
+            echo "Aguardando... ($i/30)"
+            sleep 2
+          done
+          echo "❌ Timeout no health check. Logs do container:"
+          docker compose logs frontend
+          exit 1
+
+      - name: 🧪 Executar Validação de Infraestrutura (test-docker.sh)
+        run: |
+          chmod +x ./test-docker.sh
+          ./test-docker.sh
+
+      - name: 🎭 Executar Testes E2E com Playwright
+        run: |
+          # Usa o docker-compose.test.yml que já contém a lógica de install e execução
+          docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+      - name: 📤 Upload do Relatório Playwright (apenas em caso de falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 7
+
+  deploy-preview:
+    name: 🌐 Deploy de Preview na Vercel
+    needs: validate-and-test
+    # Só executa em Pull Requests e se a etapa de testes passou
+    if: github.event_name == 'pull_request' && success()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout do código
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy na Vercel (Preview)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--local-config vercel.json'
+          github-comment: true # Comenta o link do preview no PR automaticamente

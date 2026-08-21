@@ -1,12 +1,15 @@
 {
   "name": "controle-familiar-frontend",
   "private": true,
-  "version": "0.3.3",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:infra": "./test-docker.sh"
   },
   "dependencies": {
     "react": "18.2.0",
@@ -19,7 +22,8 @@
     "tailwindcss": "^3.4.1",
     "postcss": "^8.4.35",
     "autoprefixer": "^10.4.18",
-    "vite-plugin-pwa": "^0.20.0"
+    "vite-plugin-pwa": "^0.20.0",
+    "@playwright/test": "^1.42.0"
   },
   "engines": {
     "node": "22.x"
