@@ -25,3 +25,12 @@ dist-ssr
 
 # Artefatos de análise (não versionar)
 AUDITORIA_RELATORIO.md
+
+# Playwright & Testes E2E
+playwright-report/
+test-results/
+.blob/
+
+# Observações e Logs Locais
+skill-observations/
+*.log
