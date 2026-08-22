@@ -1,16 +1,16 @@
 import axios from 'axios';
 
-// 1. Configuração única e correta do Axios
+// 1. ÚNICA declaração da instância do Axios, configurada corretamente
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com',
-  withCredentials: true, // ESSENCIAL: permite enviar cookies HttpOnly entre domínios diferentes
+  withCredentials: true, // ESSENCIAL: permite enviar cookies HttpOnly entre domínios diferentes (Vercel -> Render)
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// 2. Controle de Refresh Token
+// 2. Controle de estado para Refresh Token
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -25,7 +25,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// 3. Interceptor de Resposta
+// 3. Interceptor de Resposta (Trata 401 e tenta renovar o token)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -45,14 +45,15 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Tenta renovar o token (o cookie HttpOnly é enviado automaticamente)
+        // Tenta renovar o token (o cookie HttpOnly é enviado automaticamente pelo withCredentials)
         await api.post('/api/auth/refresh');
         
         processQueue(null);
-        return api(originalRequest); // Reenvia a requisição original
+        return api(originalRequest); // Reenvia a requisição original que falhou
       } catch (refreshError) {
         processQueue(refreshError, null);
-        window.dispatchEvent(new Event('auth:expired')); // Notifica o app para deslogar
+        // Notifica o aplicativo que a sessão expirou definitivamente
+        window.dispatchEvent(new Event('auth:expired'));
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
