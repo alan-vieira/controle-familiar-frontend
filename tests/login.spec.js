@@ -1,80 +1,71 @@
+// tests/login.spec.js
 import { test, expect } from '@playwright/test';
 
-test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
-  
+test.describe('Fluxo de Autenticação (Frontend com Mocks)', () => {
   test('deve fazer login com sucesso e redirecionar para o dashboard', async ({ page }) => {
-    // 1. Mock da resposta de login bem-sucedido
-    // REMOVIDO 'Secure' porque o ambiente de teste é HTTP (http://frontend)
-    await page.route('**/api/auth/login', async route => {
+    // 1. MOCK DA API: Intercepta a chamada de login antes dela acontecer
+    // ⚠️ AJUSTE: Se sua api.js chama 'http://localhost:5000/login', use '**/login'
+    await page.route('**/login', async (route) => {
       await route.fulfill({
         status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          token: 'mock-jwt-token-123',
+          user: { id: 1, nome: 'Usuário Teste' }
+        }),
         headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': 'access_token=mock-jwt-token-valido-123; HttpOnly; Path=/'
-        },
-        body: JSON.stringify({
-          user: { id: 1, username: 'testuser', email: 'test@test.com' }
-        })
+          'Set-Cookie': 'auth_token=mock-jwt-token-123; HttpOnly; Path=/'
+        }
       });
     });
 
-    // 2. Mock da verificação de status (chamada pelo AuthContext após o login)
-    await page.route('**/api/auth/status', async route => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          logged_in: true,
-          user: { id: 1, username: 'testuser', email: 'test@test.com' }
-        })
-      });
-    });
-
-    // 3. Executa o fluxo real de UI no frontend
+    // 2. Acessar a página de login
     await page.goto('/login');
+
+    // 3. Preencher o formulário 
+    // 💡 DICA: Usar data-testid é o mais seguro. Se não tiver, use getByLabel ou getByPlaceholder
+    await page.getByTestId('input-email').fill('teste@exemplo.com');
+    await page.getByTestId('input-senha').fill('senha123');
+
+    // 4. Preparar a espera da resposta ANTES de clicar
+    const responsePromise = page.waitForResponse('**/login');
     
-    // Preenche o formulário (ajuste os placeholders se forem diferentes no seu HTML)
-    await page.getByPlaceholder(/usu[aá]rio/i).fill('testuser');
-    await page.getByPlaceholder(/senha/i).fill('senha123');
-    await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
+    // 5. Clicar no botão de entrar
+    await page.getByTestId('btn-entrar').click();
 
-    // Pequena pausa para garantir que o React processe o estado e o roteamento
-    await page.waitForTimeout(500);
+    // 6. Garantir que o mock foi acionado e respondeu com 200
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
 
-    // 4. Validações de roteamento
+    // 7. Verificar o redirecionamento (Playwright faz retry automático até passar ou dar timeout)
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
-    
-    // 5. Prova definitiva: valida se o navegador processou o cookie HttpOnly do mock
-    const cookies = await page.context().cookies();
-    const authCookie = cookies.find(c => c.name === 'access_token');
-    
-    expect(authCookie).toBeDefined();
-    expect(authCookie?.value).toBe('mock-jwt-token-valido-123');
-    expect(authCookie?.httpOnly).toBe(true);
+
+    // 8. Prova final: verificar se um elemento típico do Dashboard está na tela
+    // (Isso evita falsos positivos de roteamento vazio)
+    await expect(page.getByText('Resumo Financeiro')).toBeVisible({ timeout: 5000 });
   });
 
-  test('deve exibir erro e permanecer no login com credenciais inválidas', async ({ page }) => {
-    // 1. Mock da resposta de login falho (401 Unauthorized)
-    await page.route('**/api/auth/login', async route => {
+  test('deve exibir erro com credenciais inválidas', async ({ page }) => {
+    await page.route('**/login', async (route) => {
       await route.fulfill({
         status: 401,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          error: 'Credenciais inválidas',
-          code: 'INVALID_CREDENTIALS'
-        })
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Credenciais inválidas' })
       });
     });
 
-    // 2. Executa o fluxo de UI
     await page.goto('/login');
-    await page.getByPlaceholder(/usu[aá]rio/i).fill('usuario_errado');
-    await page.getByPlaceholder(/senha/i).fill('senha_errada');
-    await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
+    await page.getByTestId('input-email').fill('errado@exemplo.com');
+    await page.getByTestId('input-senha').fill('senhaerrada');
+    
+    const responsePromise = page.waitForResponse('**/login');
+    await page.getByTestId('btn-entrar').click();
+    await responsePromise;
 
-    // 3. Validações: permanece na tela de login e não redireciona
-    await page.waitForTimeout(500);
-    await expect(page).toHaveURL(/.*login/, { timeout: 5000 });
+    // Verifica se a URL NÃO mudou
+    await expect(page).toHaveURL(/.*login/);
+    
+    // Verifica se a mensagem de erro aparece (ajuste o texto conforme seu componente)
+    await expect(page.getByText(/inválidas|erro/i)).toBeVisible();
   });
-
 });
