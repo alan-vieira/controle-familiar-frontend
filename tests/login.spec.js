@@ -3,14 +3,14 @@ import { test, expect } from '@playwright/test';
 test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
   
   test('deve fazer login com sucesso e redirecionar para o dashboard', async ({ page }) => {
-    // 1. Mock da resposta de login bem-sucedido (Formato EXATO do Flask: jsonify(data))
+    // 1. Mock da resposta de login bem-sucedido
+    // REMOVIDO 'Secure' porque o ambiente de teste é HTTP (http://frontend)
     await page.route('**/api/auth/login', async route => {
       await route.fulfill({
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          // Simula o backend definindo o cookie HttpOnly
-          'Set-Cookie': 'access_token=mock-jwt-token-valido-123; HttpOnly; Path=/; Secure; SameSite=None'
+          'Set-Cookie': 'access_token=mock-jwt-token-valido-123; HttpOnly; Path=/'
         },
         body: JSON.stringify({
           user: { id: 1, username: 'testuser', email: 'test@test.com' }
@@ -33,10 +33,13 @@ test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
     // 3. Executa o fluxo real de UI no frontend
     await page.goto('/login');
     
-    // Ajuste os seletores conforme os placeholders reais do seu formulário
+    // Preenche o formulário (ajuste os placeholders se forem diferentes no seu HTML)
     await page.getByPlaceholder(/usu[aá]rio/i).fill('testuser');
     await page.getByPlaceholder(/senha/i).fill('senha123');
     await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
+
+    // Pequena pausa para garantir que o React processe o estado e o roteamento
+    await page.waitForTimeout(500);
 
     // 4. Validações de roteamento
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
@@ -44,6 +47,7 @@ test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
     // 5. Prova definitiva: valida se o navegador processou o cookie HttpOnly do mock
     const cookies = await page.context().cookies();
     const authCookie = cookies.find(c => c.name === 'access_token');
+    
     expect(authCookie).toBeDefined();
     expect(authCookie?.value).toBe('mock-jwt-token-valido-123');
     expect(authCookie?.httpOnly).toBe(true);
@@ -69,6 +73,7 @@ test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
     await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
 
     // 3. Validações: permanece na tela de login e não redireciona
+    await page.waitForTimeout(500);
     await expect(page).toHaveURL(/.*login/, { timeout: 5000 });
   });
 

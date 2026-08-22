@@ -15,7 +15,7 @@ test.describe('Roteamento SPA e Nginx (Frontend Isolado com Mocks)', () => {
       });
     });
 
-    // 3. Mock do refresh também falhando (para garantir que o interceptor não fique em loop)
+    // 3. Mock do refresh também falhando (para evitar loops no interceptor do Axios)
     await page.route('**/api/auth/refresh', async route => {
       await route.fulfill({
         status: 401,
@@ -33,13 +33,14 @@ test.describe('Roteamento SPA e Nginx (Frontend Isolado com Mocks)', () => {
 
   test('deve carregar o dashboard corretamente e persistir ao recarregar a página (F5)', async ({ page }) => {
     // 1. Injeta manualmente o cookie HttpOnly no contexto do navegador antes de navegar
+    // Domínio 'frontend' corresponde ao nome do serviço no docker-compose de teste
     await page.context().addCookies([{
       name: 'access_token',
       value: 'mock-jwt-token-persistente',
-      domain: 'frontend', // Domínio usado no container Docker de teste
+      domain: 'frontend',
       path: '/',
       httpOnly: true,
-      secure: false
+      secure: false // false porque o ambiente de teste é HTTP
     }]);
 
     // 2. Mock da verificação de status retornando 200 (autenticado)
@@ -54,19 +55,22 @@ test.describe('Roteamento SPA e Nginx (Frontend Isolado com Mocks)', () => {
       });
     });
 
-    // 3. Mocks básicos para evitar erros 404 no console ao carregar o dashboard
+    // 3. Mocks básicos para evitar que o dashboard fique carregando infinitamente ou gere erros 404 no console
     await page.route('**/api/despesas**', route => route.fulfill({ status: 200, body: '[]', headers: { 'Content-Type': 'application/json' } }));
     await page.route('**/api/rendas**', route => route.fulfill({ status: 200, body: '[]', headers: { 'Content-Type': 'application/json' } }));
     await page.route('**/api/colaboradores**', route => route.fulfill({ status: 200, body: '[]', headers: { 'Content-Type': 'application/json' } }));
 
     // 4. Navega para o dashboard
     await page.goto('/dashboard');
+    await page.waitForTimeout(500); // Aguarda o React montar e fazer a chamada de status
+    
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
     await expect(page.locator('body')).not.toContainText('404 Not Found');
     await expect(page.locator('body')).not.toContainText('Cannot GET');
 
     // 5. Simula o recarregamento da página (F5)
     await page.reload();
+    await page.waitForTimeout(500);
 
     // 6. Validações pós-recarregamento
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
