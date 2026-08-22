@@ -67,7 +67,7 @@ export async function checkAuthStatus() {
   try {
     const response = await api.get('/api/auth/status');
     // Se chegou aqui sem erro 401, está autenticado
-    return response.valid === true || response.logged_in === true || response.authenticated === true;
+    return response.data?.logged_in === true;
   } catch (error) {
     // 401 ou erro de rede = não autenticado
     if (error.response?.status === 401) {
