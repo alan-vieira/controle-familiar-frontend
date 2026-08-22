@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import DivisaoPorColaborador from './DivisaoPorColaborador'; // ✅ caminho correto
+import DivisaoPorColaborador from './DivisaoPorColaborador';
 
 const formatBRL = (valor) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor ?? 0);
@@ -22,10 +22,12 @@ export default function ResumoMensal({ mesAno }) {
       setLoading(true);
       setError('');
       try {
-        const resumoData = await api(`resumo/${mesAno}`);
-        const divisaoData = await api(`divisao/${mesAno}`);
-        setResumo(resumoData);
-        setDivisaoStatus(divisaoData);
+        // ✅ CORREÇÃO: Ler response.data em vez do objeto de resposta inteiro
+        const resumoResponse = await api(`resumo/${mesAno}`);
+        const divisaoResponse = await api(`divisao/${mesAno}`);
+        
+        setResumo(resumoResponse.data);
+        setDivisaoStatus(divisaoResponse.data);
       } catch (err) {
         setError(err.message || 'Erro ao carregar resumo');
         setResumo(null);
@@ -40,23 +42,25 @@ export default function ResumoMensal({ mesAno }) {
   const handleMarcarComoPago = async () => {
     if (!mesAno) return;
     try {
-      const data = await api(`divisao/${mesAno}/marcar-pago`, {
+      // ✅ CORREÇÃO: Axios usa 'data', não 'body'. E ler response.data
+      const response = await api(`divisao/${mesAno}/marcar-pago`, {
         method: 'POST',
-        body: JSON.stringify({}),
+        data: {}, 
       });
-      setDivisaoStatus(data);
+      setDivisaoStatus(response.data);
     } catch (err) {
-      alert('Erro ao marcar como pago: ' + err.message);
+      alert('Erro ao marcar como pago: ' + (err.response?.data?.error || err.message));
     }
   };
 
   const handleDesmarcarComoPago = async () => {
     if (!mesAno) return;
     try {
-      const data = await api(`divisao/${mesAno}/desmarcar-pago`, { method: 'POST' });
-      setDivisaoStatus(data);
+      // ✅ CORREÇÃO: Ler response.data
+      const response = await api(`divisao/${mesAno}/desmarcar-pago`, { method: 'POST' });
+      setDivisaoStatus(response.data);
     } catch (err) {
-      alert('Erro ao desmarcar como pago: ' + err.message);
+      alert('Erro ao desmarcar como pago: ' + (err.response?.data?.error || err.message));
     }
   };
 
