@@ -61,7 +61,7 @@ export default function PrivateRoute({ children }) {
       window.removeEventListener('auth:expired', handleAuthExpired);
       window.removeEventListener('auth:logout', handleLogout);
     };
-  }, [navigate, location]);
+  }, [navigate]);
 
   // Mostra loading enquanto verifica
   if (isChecking) {

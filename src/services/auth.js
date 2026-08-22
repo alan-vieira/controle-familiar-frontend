@@ -66,14 +66,13 @@ export async function logout() {
 export async function checkAuthStatus() {
   try {
     const response = await api.get('/api/auth/status');
-    // Se chegou aqui sem erro 401, está autenticado
+    
+    // ✅ CORREÇÃO: Os dados do Axios estão sempre dentro de response.data
+    console.log('Resposta do status:', response.data); // Para você ver no console do navegador
     return response.data?.logged_in === true;
+    
   } catch (error) {
-    // 401 ou erro de rede = não autenticado
-    if (error.response?.status === 401) {
-      return false;
-    }
-    // Para outros erros, assume não autenticado por segurança
+    console.error('Erro ao verificar autenticação:', error);
     return false;
   }
 }
