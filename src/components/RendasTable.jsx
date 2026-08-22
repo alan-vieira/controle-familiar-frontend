@@ -1,6 +1,6 @@
 // src/components/RendasTable.jsx
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import api from '../services/api';
 import { formatMonthYearToBR } from '../utils/dateUtils';
 import { formatCurrency } from '../utils/formatCurrency';
 import RendaForm from './RendaForm';

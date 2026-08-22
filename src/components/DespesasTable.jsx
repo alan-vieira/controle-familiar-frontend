@@ -1,6 +1,6 @@
 // src/components/DespesasTable.jsx
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import api from '../services/api';
 import { formatDateToBR } from '../utils/dateUtils';
 import { formatCurrency } from '../utils/formatCurrency';
 import DespesaForm from './DespesaForm';

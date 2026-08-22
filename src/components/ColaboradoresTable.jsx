@@ -1,6 +1,6 @@
 // src/components/ColaboradoresTable.jsx
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import api from '../services/api';
 import ColaboradorForm from './ColaboradorForm';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 

@@ -1,6 +1,6 @@
 // src/components/RendaForm.jsx
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import api from '../services/api';
 
 export default function RendaForm({ renda, onClose, onSuccess }) {
   const [formData, setFormData] = useState({

@@ -1,6 +1,6 @@
 // src/components/ColaboradorForm.jsx
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import api from '../services/api';
 
 export default function ColaboradorForm({ colaborador, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
