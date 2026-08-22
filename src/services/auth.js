@@ -1,5 +1,5 @@
 // src/services/auth.js
-import { api } from './api';
+import api from './api';
 
 /**
  * Serviço de autenticação baseado em Cookies HttpOnly
