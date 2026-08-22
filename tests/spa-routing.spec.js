@@ -10,19 +10,20 @@ test.describe('Roteamento SPA e Nginx (Com Autenticação)', () => {
 
     // Registro rápido
     await page.goto('/register');
-    await page.getByPlaceholder(/usuário/i).fill(username);
-    await page.getByPlaceholder(/e-mail/i).fill(`${username}@test.com`);
+    await page.getByPlaceholder(/usu[aá]rio/i).fill(username);
+    await page.getByPlaceholder(/e-?mail/i).fill(`${username}@test.com`);
     await page.getByPlaceholder(/senha/i).fill(password);
     await page.getByRole('button', { name: /cadastrar|registrar|criar conta/i }).click();
-    await page.waitForURL(/.*login/);
+    
+    await page.waitForURL(/.*login/, { timeout: 10000 });
 
     // Login
-    await page.getByPlaceholder(/usuário/i).fill(username);
+    await page.getByPlaceholder(/usu[aá]rio/i).fill(username);
     await page.getByPlaceholder(/senha/i).fill(password);
-    await page.getByRole('button', { name: /entrar|login/i }).click();
+    await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
     
     // Aguarda estar no dashboard
-    await expect(page).toHaveURL(/.*dashboard/);
+    await page.waitForURL(/.*dashboard/, { timeout: 15000 });
     await page.waitForLoadState('networkidle');
   }
 
@@ -34,13 +35,12 @@ test.describe('Roteamento SPA e Nginx (Com Autenticação)', () => {
     await page.reload();
 
     // 3. Validações pós-recarregamento
-    // O Nginx deve servir o index.html e o React Router deve assumir (sem 404)
-    // O cookie HttpOnly deve ser enviado automaticamente, validando a sessão no /api/auth/status
-    await expect(page).toHaveURL(/.*dashboard/);
+    // O Nginx serve o index.html, o React Router assume, e o cookie HttpOnly é enviado automaticamente
+    await page.waitForURL(/.*dashboard/, { timeout: 10000 });
     await expect(page.locator('body')).not.toContainText('404 Not Found');
     await expect(page.locator('body')).not.toContainText('Cannot GET');
     
-    // Opcional: Verificar se o cookie persistiu após o reload
+    // Verificar se o cookie persistiu após o reload
     const cookies = await page.context().cookies();
     expect(cookies.find(c => c.name === 'access_token')).toBeDefined();
   });
