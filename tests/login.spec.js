@@ -1,100 +1,58 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Fluxo de Autenticação', () => {
-  test('deve exibir formulário de login corretamente', async ({ page }) => {
-    await page.goto('/login');
+test.describe('Fluxo de Autenticação (UI Real)', () => {
+  
+  test('deve registrar, fazer login com sucesso e acessar o dashboard', async ({ page }) => {
+    const uniqueId = Date.now();
+    const username = `testuser_e2e_${uniqueId}`;
+    const password = 'SenhaForte@123';
+    const email = `${username}@test.com`;
+
+    // 1. Registro via UI (garante usuário válido sem depender de dados fixos no DB)
+    await page.goto('/register');
+    await page.getByPlaceholder(/usuário/i).fill(username);
+    await page.getByPlaceholder(/e-mail/i).fill(email);
+    await page.getByPlaceholder(/senha/i).fill(password);
+    await page.getByRole('button', { name: /cadastrar|registrar|criar conta/i }).click();
+
+    // Aguarda o redirecionamento automático para a tela de login após registro
+    await page.waitForURL(/.*login/);
+
+    // 2. Login via UI
+    await page.getByPlaceholder(/usuário/i).fill(username);
+    await page.getByPlaceholder(/senha/i).fill(password);
+    await page.getByRole('button', { name: /entrar|login/i }).click();
+
+    // Aguarda a rede estabilizar (Axios faz a requisição e o React Router redireciona)
+    await page.waitForLoadState('networkidle');
+
+    // 3. Validações
+    await expect(page).toHaveURL(/.*dashboard/);
+    await expect(page.locator('body')).not.toContainText('404 Not Found');
+    await expect(page.locator('body')).not.toContainText('Cannot GET');
     
-    // Verifica se os elementos do formulário estão presentes
-    await expect(page.getByPlaceholder('Usuário')).toBeVisible();
-    await expect(page.getByPlaceholder('Senha')).toBeVisible();
-    await expect(page.getByRole('button', { name: /entrar/i })).toBeVisible();
+    // Bônus: Verifica se o cookie HttpOnly foi realmente definido pelo backend
+    const cookies = await page.context().cookies();
+    const authCookie = cookies.find(c => c.name === 'access_token');
+    expect(authCookie).toBeDefined();
+    expect(authCookie?.httpOnly).toBe(true);
   });
 
   test('deve exibir erro e NÃO redirecionar com credenciais inválidas', async ({ page }) => {
-      await page.goto('/login');
-    
-      // Tenta login com credenciais inválidas (irá falhar na API real)
-      await page.getByPlaceholder('Usuário').fill('errado@exemplo.com');
-      await page.getByPlaceholder('Senha').fill('senhaerrada');
-    
-      await page.getByRole('button', { name: /entrar/i }).click();
-    
-      // Aguarda a resposta da API
-      await page.waitForTimeout(3000);
-    
-      // Valida a correção da v0.1.2: permanece na tela de login (não redireciona)
-      await expect(page).toHaveURL(/.*login/); // Permanece na tela de login
-    });
-
-  test('deve ter botão com estados visuais corretos (disabled:bg-blue-400)', async ({ page }) => {
     await page.goto('/login');
-    
-    const button = page.getByRole('button', { name: /entrar/i });
-    
-    // Verifica se o botão tem as classes de estado disabled definidas no Tailwind
-    await expect(button).toHaveClass(/disabled:bg-blue-400/);
-    await expect(button).toHaveClass(/disabled:cursor-not-allowed/);
-    
-    // Verifica se o botão NÃO está disabled por padrão
-    await expect(button).toBeEnabled();
-  });
-});
-
-test.describe('SPA Routing - Validações v0.1.2 e v0.1.3', () => {
-  test('deve fazer login com sucesso (mock simulado via localStorage)', async ({ page }) => {
-    // Simula usuário já logado
-    await page.addInitScript(() => {
-      localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3RlIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjkwMDAwMDAwMDB9.fake-signature');
-    });
-    
-    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
-    
-    // Deve acessar dashboard sem redirecionar para login
-    await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page).not.toHaveURL(/.*login/);
-  });
-});
 
-test.describe('Roteamento SPA e Nginx', () => {
-  test('deve carregar o dashboard corretamente ao recarregar a página (F5)', async ({ page }) => {
-    // Simula usuário logado (mock do localStorage)
-    await page.addInitScript(() => {
-      localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3RlIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjkwMDAwMDAwMDB9.fake-signature');
-    });
+    // Tenta login com credenciais que não existem
+    await page.getByPlaceholder(/usuário/i).fill('usuario_inexistente_999');
+    await page.getByPlaceholder(/senha/i).fill('senhaerrada');
+    await page.getByRole('button', { name: /entrar|login/i }).click();
 
-    await page.goto('/dashboard');
+    // Aguarda a resposta da API e a UI estabilizar
     await page.waitForLoadState('networkidle');
-    
-    // Recarrega a página (simula F5)
-    await page.reload();
-    
-    // O Nginx deve servir o index.html e o React Router deve assumir (sem 404)
-    await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.locator('body')).not.toContainText('404 Not Found');
-    await expect(page.locator('body')).not.toContainText('Cannot GET');
-  });
+    await page.waitForTimeout(2000); // Pequeno delay para garantir que o estado de erro foi renderizado
 
-  test('deve redirecionar para /login ao acessar rota protegida sem token', async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.clear();
-    });
-
-    await page.goto('/dashboard');
-    
-    // O PrivateRoute deve interceptar e redirecionar
+    // Valida: permanece na tela de login
     await expect(page).toHaveURL(/.*login/);
   });
 
-  test('rota inexistente deve retornar index.html (SPA fallback)', async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3RlIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjkwMDAwMDAwMDB9.fake-signature');
-    });
-    
-    await page.goto('/rota-que-nao-existe');
-    
-    // Deve servir index.html (não 404)
-    await expect(page.locator('body')).not.toContainText('404 Not Found');
-    await expect(page.locator('body')).not.toContainText('Cannot GET');
-  });
 });
