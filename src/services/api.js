@@ -1,18 +1,14 @@
 import axios from 'axios';
 
-// URL base da API usando variável de ambiente do Vite
-const API_URL = import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com';
-
 /**
  * Cliente HTTP configurado com Axios
- * 
  * Configurações:
  * - withCredentials: true → ESSENCIAL para enviar cookies HttpOnly automaticamente
  * - baseURL: URL da API (produção ou desenvolvimento via Vite)
  * - timeout: 30 segundos (acomoda cold start do Render free tier)
  */
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com',
   withCredentials: true, // Permite envio automático de cookies HttpOnly
   timeout: 30000,
   headers: {
@@ -27,7 +23,6 @@ let failedQueue = [];
 /**
  * Processa a fila de requisições que falharam com 401
  * Resolve ou rejeita todas as promises na fila baseado no resultado do refresh
- * 
  * @param {Error|null} error - Erro do refresh (se houver)
  * @param {string|null} token - Novo token (não usado com cookies, mas mantido para compatibilidade)
  */
@@ -39,22 +34,20 @@ const processQueue = (error, token = null) => {
       promise.resolve(token);
     }
   });
-  
   // Limpa a fila após processar
   failedQueue = [];
 };
 
 /**
  * Interceptor de Resposta - Trata erros 401 com Refresh Token Rotation
- * 
  * Fluxo:
  * 1. Se erro 401 e não é retry da requisição original
  * 2. Se já está fazendo refresh → adiciona à fila e aguarda
  * 3. Se não está fazendo refresh → inicia processo de refresh
- * 4. Tenta POST /api/auth/refresh (cookies HttpOnly são enviados automaticamente)
- * 5. Se sucesso → processa fila (resolve promises) e reenvia requisição original
- * 6. Se falha → processa fila (rejeita promises) e dispara evento 'auth:expired'
- * 7. finally → libera flag isRefreshing
+ *    - Tenta POST /api/auth/refresh (cookies HttpOnly são enviados automaticamente)
+ *    - Se sucesso → processa fila (resolve promises) e reenvia requisição original
+ *    - Se falha → processa fila (rejeita promises) e dispara evento 'auth:expired'
+ * 4. finally → libera flag isRefreshing
  */
 api.interceptors.response.use(
   (response) => response,
@@ -63,19 +56,18 @@ api.interceptors.response.use(
 
     // Verifica se é erro 401 (Não Autorizado) e não é uma requisição de retry
     if (error.response?.status === 401 && !originalRequest._retry) {
-      
       // Se já está fazendo refresh, adiciona à fila e aguarda
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => {
-            // Após refresh bem-sucedido, reenvia a requisição original
-            return api(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+        .then(() => {
+          // Após refresh bem-sucedido, reenvia a requisição original
+          return api(originalRequest);
+        })
+        .catch((err) => {
+          return Promise.reject(err);
+        });
       }
 
       // Marca como retry e inicia processo de refresh
