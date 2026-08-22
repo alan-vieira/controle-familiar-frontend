@@ -10,44 +10,54 @@ test.describe('Roteamento SPA e Nginx (Frontend Isolado com Mocks)', () => {
     await page.route('**/api/auth/status', async route => {
       await route.fulfill({
         status: 401,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'Token de autorização ausente', code: 'TOKEN_MISSING' })
       });
     });
 
-    // 3. Tenta acessar o dashboard diretamente
+    // 3. Mock do refresh também falhando (para garantir que o interceptor não fique em loop)
+    await page.route('**/api/auth/refresh', async route => {
+      await route.fulfill({
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Refresh failed', code: 'REFRESH_FAILED' })
+      });
+    });
+
+    // 4. Tenta acessar o dashboard diretamente
     await page.goto('/dashboard');
     
-    // 4. O AuthContext deve detectar o 401 e redirecionar para o login
+    // 5. O AuthContext/PrivateRoute deve detectar o 401 e redirecionar para o login
     await expect(page).toHaveURL(/.*login/, { timeout: 10000 });
   });
 
   test('deve carregar o dashboard corretamente e persistir ao recarregar a página (F5)', async ({ page }) => {
     // 1. Injeta manualmente o cookie HttpOnly no contexto do navegador antes de navegar
-    // (Simula o estado de um usuário que já fez login anteriormente)
     await page.context().addCookies([{
       name: 'access_token',
       value: 'mock-jwt-token-persistente',
-      domain: 'localhost', // Domínio padrão dos testes locais/Docker
+      domain: 'frontend', // Domínio usado no container Docker de teste
       path: '/',
       httpOnly: true,
-      secure: false // false em testes locais HTTP
+      secure: false
     }]);
 
     // 2. Mock da verificação de status retornando 200 (autenticado)
     await page.route('**/api/auth/status', async route => {
       await route.fulfill({
         status: 200,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          success: true,
-          data: { logged_in: true, user_id: 1 }
+          logged_in: true,
+          user: { id: 1, username: 'testuser', email: 'test@test.com' }
         })
       });
     });
 
     // 3. Mocks básicos para evitar erros 404 no console ao carregar o dashboard
-    await page.route('**/api/despesas**', route => route.fulfill({ status: 200, body: '[]' }));
-    await page.route('**/api/rendas**', route => route.fulfill({ status: 200, body: '[]' }));
-    await page.route('**/api/colaboradores**', route => route.fulfill({ status: 200, body: '[]' }));
+    await page.route('**/api/despesas**', route => route.fulfill({ status: 200, body: '[]', headers: { 'Content-Type': 'application/json' } }));
+    await page.route('**/api/rendas**', route => route.fulfill({ status: 200, body: '[]', headers: { 'Content-Type': 'application/json' } }));
+    await page.route('**/api/colaboradores**', route => route.fulfill({ status: 200, body: '[]', headers: { 'Content-Type': 'application/json' } }));
 
     // 4. Navega para o dashboard
     await page.goto('/dashboard');
@@ -59,7 +69,6 @@ test.describe('Roteamento SPA e Nginx (Frontend Isolado com Mocks)', () => {
     await page.reload();
 
     // 6. Validações pós-recarregamento
-    // O cookie ainda deve estar lá e a página deve carregar normalmente sem cair no login
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
     
     const cookies = await page.context().cookies();

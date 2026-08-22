@@ -3,37 +3,37 @@ import { test, expect } from '@playwright/test';
 test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
   
   test('deve fazer login com sucesso e redirecionar para o dashboard', async ({ page }) => {
-    // 1. Mock da resposta de login bem-sucedido do backend
+    // 1. Mock da resposta de login bem-sucedido (Formato EXATO do Flask: jsonify(data))
     await page.route('**/api/auth/login', async route => {
       await route.fulfill({
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          // Simula o backend definindo o cookie HttpOnly exatamente como na produção
+          // Simula o backend definindo o cookie HttpOnly
           'Set-Cookie': 'access_token=mock-jwt-token-valido-123; HttpOnly; Path=/; Secure; SameSite=None'
         },
         body: JSON.stringify({
-          success: true,
-          data: {
-            user: { id: 1, username: 'testuser', email: 'test@test.com' }
-          }
+          user: { id: 1, username: 'testuser', email: 'test@test.com' }
         })
       });
     });
 
-    // 2. Mock da verificação de status (chamada pelo AuthContext ao montar a página)
+    // 2. Mock da verificação de status (chamada pelo AuthContext após o login)
     await page.route('**/api/auth/status', async route => {
       await route.fulfill({
         status: 200,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          success: true,
-          data: { logged_in: true, user_id: 1 }
+          logged_in: true,
+          user: { id: 1, username: 'testuser', email: 'test@test.com' }
         })
       });
     });
 
     // 3. Executa o fluxo real de UI no frontend
     await page.goto('/login');
+    
+    // Ajuste os seletores conforme os placeholders reais do seu formulário
     await page.getByPlaceholder(/usu[aá]rio/i).fill('testuser');
     await page.getByPlaceholder(/senha/i).fill('senha123');
     await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
@@ -56,7 +56,6 @@ test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          success: false,
           error: 'Credenciais inválidas',
           code: 'INVALID_CREDENTIALS'
         })
@@ -70,7 +69,7 @@ test.describe('Fluxo de Autenticação (Frontend Isolado com Mocks)', () => {
     await page.getByRole('button', { name: /entrar|login|acessar/i }).click();
 
     // 3. Validações: permanece na tela de login e não redireciona
-    await expect(page).toHaveURL(/.*login/);
+    await expect(page).toHaveURL(/.*login/, { timeout: 5000 });
   });
 
 });
