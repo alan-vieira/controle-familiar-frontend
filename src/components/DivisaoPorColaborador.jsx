@@ -111,9 +111,26 @@ export default function DivisaoPorColaborador({ colaboradores = [], divisao = nu
         </div>
       )}
 
+      {/* ✅ MENSAGENS CONTEXTUAIS RESTAURADAS */}
       {colaboradores.length === 0 ? (
-        <p className="text-gray-500">Nenhum colaborador neste mês.</p>
-      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800">
+          <p className="font-medium">⚠️ Nenhum colaborador com renda registrada</p>
+          <p className="text-sm mt-1">
+            Adicione rendas na guia <strong>Rend</strong> para calcular a divisão automaticamente.
+          </p>
+        </div>
+      ) : colaboradores.length === 1 ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-800 mb-4">
+          <p className="font-medium">
+            ℹ️ Apenas <strong>{colaboradores[0].nome}</strong> possui renda registrada neste mês
+          </p>
+          <p className="text-sm mt-1">
+            A divisão será calculada com base na renda de {colaboradores[0].nome}.
+          </p>
+        </div>
+      ) : null}
+
+      {colaboradores.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {colaboradores.map((c) => (
             <ColaboradorCard key={c.id ?? c.nome} colab={c} />
