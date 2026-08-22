@@ -14,24 +14,33 @@ import api from './api';
 export async function login(username, password) {
   try {
     console.log('Iniciando login para:', username);
-    const data = await api.post('/api/auth/login', { username, password });
     
-    console.log('Resposta do login:', data);
+    // 'response' é o objeto completo do Axios
+    const response = await api.post('/api/auth/login', { username, password });
     
-    // O token vem no cookie HttpOnly, não no body da resposta
-    // O navegador armazena automaticamente
-    if (data.access_token || data.success) {
-      console.log('Login bem-sucedido - cookie HttpOnly definido');
-      return { success: true, data };
+    console.log('Resposta completa do Axios:', response);
+    console.log('Dados retornados pelo backend:', response.data);
+    
+    // Verifica se o status é 200 (OK) e se os dados do usuário existem.
+    // O navegador já salvou o cookie HttpOnly automaticamente graças ao 'withCredentials: true'.
+    if (response.status === 200 && response.data && response.data.user) {
+      console.log('Login bem-sucedido - cookie HttpOnly definido pelo navegador');
+      return { success: true, data: response.data };
     }
     
-    console.warn('Resposta inválida do servidor:', data);
+    console.warn('Resposta inesperada do servidor:', response);
     return { success: false, error: 'Resposta inválida do servidor' };
+    
   } catch (error) {
     console.error('Erro no login:', error);
+    
+    // Extrai a mensagem de erro específica do backend (ex: "Credenciais inválidas")
+    // ou usa uma mensagem genérica se o backend não retornar nada.
+    const errorMessage = error.response?.data?.error || error.response?.data?.msg || error.message || 'Erro ao fazer login';
+    
     return { 
       success: false, 
-      error: error.response?.data?.msg || error.message || 'Erro ao fazer login' 
+      error: errorMessage 
     };
   }
 }
