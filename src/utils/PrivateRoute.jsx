@@ -1,15 +1,14 @@
 // src/utils/PrivateRoute.jsx
-
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { isAuthenticated, removeToken, getToken } from '../services/auth';
+import { checkAuthStatus } from '../services/auth';
 
 /**
- * Componente de rota privada com detecção reativa de token expirado
+ * Componente de rota privada com verificação de sessão via API
  * 
- * Melhorias em relação à versão anterior:
- * 1. Verifica o token a cada render (não só no mount)
- * 2. Ouve eventos de token expirado
+ * Melhorias com HttpOnly Cookies:
+ * 1. Verifica autenticação consultando /api/auth/status (não localStorage)
+ * 2. Ouve eventos de token expirado/logout
  * 3. Mostra loading enquanto valida
  * 4. Redireciona sem recarregar a página
  */
@@ -20,22 +19,27 @@ export default function PrivateRoute({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verifica autenticação
-    const checkAuth = () => {
-      const authenticated = isAuthenticated();
-      setIsValid(authenticated);
-      setIsChecking(false);
-      
-      if (!authenticated) {
-        removeToken();
+    // Verifica autenticação consultando a API
+    const checkAuth = async () => {
+      try {
+        const authenticated = await checkAuthStatus();
+        setIsValid(authenticated);
+        
+        if (!authenticated) {
+          navigate('/login', { replace: true });
+        }
+      } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+        setIsValid(false);
         navigate('/login', { replace: true });
+      } finally {
+        setIsChecking(false);
       }
     };
 
     // Handler para eventos de token expirado
     const handleAuthExpired = () => {
       setIsValid(false);
-      removeToken();
       navigate('/login', { replace: true });
     };
 

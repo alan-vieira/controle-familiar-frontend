@@ -1,12 +1,19 @@
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/auth';
+import api from '../services/api';
 
 export default function Header() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();               // chama a API + remove token + dispara evento
-    navigate('/login', { replace: true });
+    try {
+      await api.post('/api/auth/logout');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    } finally {
+      // Dispara evento para o AuthContext/PrivateRoute lidar com o estado e redirecionamento
+      window.dispatchEvent(new Event('auth:expired'));
+    }
   };
 
   return (

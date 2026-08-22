@@ -1,21 +1,79 @@
 // src/services/auth.js
+import { api } from './api';
 
-import { api, apiPost } from './api';
+/**
+ * Serviço de autenticação baseado em Cookies HttpOnly
+ * 
+ * Não usa localStorage - a autenticação é gerenciada via cookies HttpOnly
+ * e verificada através da API (/api/auth/status)
+ */
 
-const TOKEN_KEY = 'token';
-
-export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
+/**
+ * Faz login - o servidor define o cookie HttpOnly na resposta
+ */
+export async function login(username, password) {
+  try {
+    console.log('Iniciando login para:', username);
+    const data = await api.post('/api/auth/login', { username, password });
+    
+    console.log('Resposta do login:', data);
+    
+    // O token vem no cookie HttpOnly, não no body da resposta
+    // O navegador armazena automaticamente
+    if (data.access_token || data.success) {
+      console.log('Login bem-sucedido - cookie HttpOnly definido');
+      return { success: true, data };
+    }
+    
+    console.warn('Resposta inválida do servidor:', data);
+    return { success: false, error: 'Resposta inválida do servidor' };
+  } catch (error) {
+    console.error('Erro no login:', error);
+    return { 
+      success: false, 
+      error: error.response?.data?.msg || error.message || 'Erro ao fazer login' 
+    };
+  }
 }
 
-export function removeToken() {
-  localStorage.removeItem(TOKEN_KEY);
+/**
+ * Faz logout - limpa o cookie HttpOnly no servidor
+ */
+export async function logout() {
+  try {
+    await api.post('/api/auth/logout');
+  } catch (error) {
+    console.warn('Erro ao fazer logout no servidor:', error);
+  } finally {
+    // Dispara evento para limpar estado local
+    window.dispatchEvent(new CustomEvent('auth:logout'));
+  }
 }
 
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+/**
+ * Verifica se o usuário está autenticado consultando a API
+ * Usado no PrivateRoute para validar a sessão
+ */
+export async function checkAuthStatus() {
+  try {
+    const response = await api.get('/api/auth/status');
+    // Se chegou aqui sem erro 401, está autenticado
+    return response.valid === true || response.logged_in === true || response.authenticated === true;
+  } catch (error) {
+    // 401 ou erro de rede = não autenticado
+    if (error.response?.status === 401) {
+      return false;
+    }
+    // Para outros erros, assume não autenticado por segurança
+    return false;
+  }
 }
 
+/**
+ * Decodifica token JWT (útil para pegar info do usuário se necessário)
+ * Nota: com HttpOnly cookies, o token não está acessível via JS
+ * Esta função é mantida para compatibilidade se o backend enviar o token no body
+ */
 export function decodeToken(token) {
   if (!token) return null;
   
@@ -35,78 +93,9 @@ export function decodeToken(token) {
   }
 }
 
-export function isTokenExpired(token) {
-  const decoded = decodeToken(token);
-  if (!decoded || !decoded.exp) return true;
-  return decoded.exp * 1000 < Date.now() + 30000;
-}
-
-export function isAuthenticated() {
-  const token = getToken();
-  return !!token && !isTokenExpired(token);
-}
-
-export async function login(username, password) {
-  try {
-    console.log('Iniciando login para:', username);
-    const data = await apiPost('/api/auth/login', { username, password });
-    
-    console.log('Resposta do login:', data);
-    
-    if (data.access_token) {
-      console.log('Token recebido, salvando...');
-      setToken(data.access_token);
-      const savedToken = localStorage.getItem('token');
-      console.log('Token salvo no localStorage:', savedToken ? 'OK' : 'FALHOU');
-      return { success: true, data };
-    }
-    
-    console.warn('Resposta não contém access_token:', data);
-    return { success: false, error: 'Resposta inválida do servidor' };
-  } catch (error) {
-    console.error('Erro no login:', error);
-    return { 
-      success: false, 
-      error: error.data?.msg || error.message || 'Erro ao fazer login' 
-    };
-  }
-}
-
-export async function logout() {
-  try {
-    const token = getToken();
-    if (token) {
-      await apiPost('/api/auth/logout', {}, { 
-        headers: { Authorization: `Bearer ${token}` } 
-      });
-    }
-  } catch (error) {
-    console.warn('Erro ao fazer logout no servidor:', error);
-  } finally {
-    removeToken();
-    window.dispatchEvent(new CustomEvent('auth:logout'));
-  }
-}
-
-export async function validateTokenWithServer() {
-  try {
-    // ✅ CORRIGIDO: /api/auth/status em vez de /api/auth/validate
-    const response = await api('/api/auth/status', { method: 'GET' });
-    return response.valid === true || response.logged_in === true;
-  } catch (error) {
-    console.warn('Validação de token falhou:', error);
-    return false;
-  }
-}
-
 export default {
   login,
   logout,
-  getToken,
-  setToken,
-  removeToken,
-  isAuthenticated,
-  isTokenExpired,
+  checkAuthStatus,
   decodeToken,
-  validateTokenWithServer,
 };

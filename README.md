@@ -5,7 +5,7 @@
 ![Vite 5.0.12](https://img.shields.io/badge/Vite-5.0.12-646CFF?logo=vite)
 ![Tailwind 3.4.1](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?logo=tailwind-css)
 ![PWA](https://img.shields.io/badge/PWA-vite--plugin--pwa-5A0FC8?logo=pwa)
-![Release v0.4.0](https://img.shields.io/badge/Release-v0.4.0-blue)
+![Release v0.4.1](https://img.shields.io/badge/Release-v0.4.1-blue)
 ![Node 22.x](https://img.shields.io/badge/Node-22.x-339933?logo=node.js)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions)
@@ -26,7 +26,7 @@ Interface responsiva (mobile-first) para cadastro de despesas, rendas, colaborad
 - **Banco de dados**: Supabase (acessado apenas pelo backend)
 
 ## 📦 Funcionalidades
-- ✅ Tela de login/logout (JWT em localStorage + header Bearer, fluxo SPA-safe)
+- ✅ Tela de login/logout (**Cookies HttpOnly** + Refresh Token automático, fluxo SPA-safe)
 - 👥 Gerenciamento de colaboradores (CRUD completo)
 - 💸 Registro e listagem de despesas com: Data, Descrição, Categoria, Valor (formatado em BRL: `R$ 1.234,56`)
 - 💰 Registro e listagem de rendas mensais
@@ -140,16 +140,13 @@ public/
 ## 🔐 Autenticação (Realidade Técnica)
 
 ### Como funciona hoje
-- **Token**: JWT access token (expiração 1h) armazenado em `localStorage` (chave `token`)
-- **Envio**: Header `Authorization: Bearer <token>` em todas as requisições autenticadas
-- **Interceptor 401** (`services/api.js:38-42`): Ao receber 401, remove token e dispara evento `auth:expired`
-- **PrivateRoute** (`utils/PrivateRoute.jsx`): Ouve eventos `auth:expired` e `auth:logout`, redireciona para `/login` via React Router (`Navigate`) — **sem full reload**
-- **Logout** (`Header.jsx` + `auth.logout()`): Chama `POST /api/auth/logout` (revoga token no backend) + `navigate('/login', { replace: true })`
-- **Validação de sessão no mount**: `auth.validateTokenWithServer()` chama `GET /api/auth/status`
+- **Token**: JWT access token (expiração 1h) armazenado em **Cookies HttpOnly** — inacessível via JavaScript, protegido contra XSS
+- **Envio**: Automático via cookie — **não há header `Authorization` manual** (configurado `withCredentials: true` no Axios)
+- **Refresh Token Rotation**: Interceptor Axios trata erros 401 → chama `POST /api/auth/refresh` silenciosamente → reenvia requisição original
+- **Validação de sessão no mount**: `PrivateRoute` chama `GET /api/auth/status` via `checkAuthStatus()` — se 200, sessão válida
+- **Logout**: Chama `POST /api/auth/logout` (backend limpa cookie) + dispara evento `auth:expired` → redireciona via React Router
 
-### ⚠️ Limitação Conhecida (P1 no Roadmap)
-> **O token fica exposto a XSS por estar em `localStorage`.**  
-> Migração planejada para **cookies HttpOnly + refresh token rotation** (backend já expõe `/api/auth/refresh`, ainda não consumido pelo frontend).
+> ✅ **Resolvido (P1 do Roadmap)**: Tokens não ficam mais expostos a XSS. Migração completa para **Cookies HttpOnly + Refresh Token Rotation** implementada.
 
 ---
 
@@ -157,10 +154,10 @@ public/
 
 | Método | Rota | Uso |
 |--------|------|-----|
-| POST | `/api/auth/login` | Login (retorna `access_token`) |
-| POST | `/api/auth/logout` | Revogar token no backend |
+| POST | `/api/auth/login` | Login (servidor define cookie HttpOnly) |
+| POST | `/api/auth/logout` | Limpar cookie no backend |
 | GET | `/api/auth/status` | Validar sessão no mount (`logged_in: true`) |
-| POST | `/api/auth/refresh` | **Existe no backend, ainda não usado** |
+| POST | `/api/auth/refresh` | Refresh automático via interceptor Axios |
 | GET/POST/PUT/DELETE | `/api/colaboradores` | CRUD colaboradores |
 | GET/POST/PUT/DELETE | `/api/despesas?mes_vigente=YYYY-MM` | CRUD despesas |
 | GET/POST/PUT/DELETE | `/api/rendas?mes=YYYY-MM` | CRUD rendas mensais |
@@ -179,7 +176,9 @@ public/
 - **Retry**: Exponencial (3 tentativas, 2s/4s/6s) — **apenas para 5xx e erros de rede** (nunca 4xx)
 - **Cancelamento**: `AbortController` por request
 - **Normalização**: `buildUrl()` injeta `/api` automaticamente
-- **Interceptor 401**: Dispara `window.dispatchEvent(new CustomEvent('auth:expired'))`
+- **Cookies HttpOnly**: `withCredentials: true` envia cookies automaticamente
+- **Interceptor 401**: Refresh Token automático + reenvia requisição original
+- **Evento `auth:expired`**: Disparado quando refresh falha → app redireciona para login
 
 ---
 

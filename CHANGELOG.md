@@ -5,6 +5,22 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-br/).
 
+## [0.4.1] - 2026-08-22
+
+### 🔒 Segurança (Resolução da Tarefa P1 do Roadmap)
+- Migração de tokens JWT de localStorage para Cookies HttpOnly
+- Implementação de Refresh Token automático via interceptor Axios
+- Remoção completa de dependência de localStorage para autenticação
+- Validação de sessão via API (/api/auth/status) no mount do app
+
+### 🛠️ Melhorias Técnicas
+- Adicionado `withCredentials: true` no cliente Axios
+- Interceptor de resposta trata erros 401 e renova token silenciosamente
+- Logout agora depende apenas do backend para limpar cookie
+
+### 📚 Documentação
+- README atualizado com novas práticas de segurança
+
 ## [0.4.0] - 2026-08-21
 ### Added
 - **Infraestrutura Docker completa** fiel ao ambiente Vercel:

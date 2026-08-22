@@ -1,7 +1,7 @@
 {
   "name": "controle-familiar-frontend",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,18 +12,19 @@
     "test:infra": "./test-docker.sh"
   },
   "dependencies": {
+    "axios": "^1.19.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-router-dom": "6.22.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.42.0",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.12",
-    "tailwindcss": "^3.4.1",
-    "postcss": "^8.4.35",
     "autoprefixer": "^10.4.18",
-    "vite-plugin-pwa": "^0.20.0",
-    "@playwright/test": "^1.42.0"
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.0.12",
+    "vite-plugin-pwa": "^0.20.0"
   },
   "engines": {
     "node": "22.x"

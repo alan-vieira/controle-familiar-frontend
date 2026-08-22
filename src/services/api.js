@@ -1,117 +1,115 @@
-// src/services/api.js
+import axios from 'axios';
 
+// URL base da API usando variável de ambiente do Vite
 const API_URL = import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com';
 
-// Timeout padrão (30 segundos — acomoda cold start do Render free tier)
-const DEFAULT_TIMEOUT = 30000;
-
-// Configuração de retry
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000; // 2 segundos
-
 /**
- * Normaliza o endpoint para garantir barra inicial e prefixo /api
+ * Cliente HTTP configurado com Axios
+ * 
+ * Configurações:
+ * - withCredentials: true → ESSENCIAL para enviar cookies HttpOnly automaticamente
+ * - baseURL: URL da API (produção ou desenvolvimento via Vite)
+ * - timeout: 30 segundos (acomoda cold start do Render free tier)
  */
-function buildUrl(endpoint) {
-  // Garante que começa com /
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  
-  // Se já tem /api, usa como está (caso do login: /api/auth/login)
-  // Se não tem, adiciona /api
-  const fullPath = path.startsWith('/api/') ? path : `/api${path}`;
-  
-  return `${API_URL}${fullPath}`;
-}
-
-/**
- * Verifica se o erro é retryable
- * (apenas erros de rede e 5xx, nunca 4xx)
- */
-function isRetryableError(error) {
-  if (!error.response) return true;
-  const status = error.response.status;
-  return status >= 500 && status < 600;
-}
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-function handle401() {
-  localStorage.removeItem('token');
-  window.dispatchEvent(new CustomEvent('auth:expired'));
-  console.warn('Token expirado, redirecionando para login...');
-}
-
-/**
- * Faz uma requisição HTTP com retry e timeout
- */
-export async function api(endpoint, options = {}) {
-  const {
-    timeout = DEFAULT_TIMEOUT,
-    retries = MAX_RETRIES,
-    ...fetchOptions
-  } = options;
-
-  const token = localStorage.getItem('token');
-  const headers = {
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true, // Permite envio automático de cookies HttpOnly
+  timeout: 30000,
+  headers: {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
-    ...fetchOptions.headers,
-  };
+  },
+});
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+// Estado para controle de refresh token
+let isRefreshing = false;
+let failedQueue = [];
 
-  try {
-    // AQUI ESTÁ A CORREÇÃO: usar buildUrl() em vez de concatenação direta
-    const response = await fetch(buildUrl(endpoint), {
-      ...fetchOptions,
-      headers,
-      signal: controller.signal,
-    });
+/**
+ * Processa a fila de requisições que falharam com 401
+ * Resolve ou rejeita todas as promises na fila baseado no resultado do refresh
+ * 
+ * @param {Error|null} error - Erro do refresh (se houver)
+ * @param {string|null} token - Novo token (não usado com cookies, mas mantido para compatibilidade)
+ */
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve(token);
+    }
+  });
+  
+  // Limpa a fila após processar
+  failedQueue = [];
+};
 
-    clearTimeout(timeoutId);
+/**
+ * Interceptor de Resposta - Trata erros 401 com Refresh Token Rotation
+ * 
+ * Fluxo:
+ * 1. Se erro 401 e não é retry da requisição original
+ * 2. Se já está fazendo refresh → adiciona à fila e aguarda
+ * 3. Se não está fazendo refresh → inicia processo de refresh
+ * 4. Tenta POST /api/auth/refresh (cookies HttpOnly são enviados automaticamente)
+ * 5. Se sucesso → processa fila (resolve promises) e reenvia requisição original
+ * 6. Se falha → processa fila (rejeita promises) e dispara evento 'auth:expired'
+ * 7. finally → libera flag isRefreshing
+ */
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (response.status === 401) {
-      handle401();
-      throw new Error('Sessão expirada. Faça login novamente.');
+    // Verifica se é erro 401 (Não Autorizado) e não é uma requisição de retry
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      // Se já está fazendo refresh, adiciona à fila e aguarda
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            // Após refresh bem-sucedido, reenvia a requisição original
+            return api(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      // Marca como retry e inicia processo de refresh
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Tenta fazer refresh do token
+        // O cookie HttpOnly é enviado automaticamente graças a withCredentials: true
+        await api.post('/api/auth/refresh');
+        
+        // Refresh bem-sucedido: processa fila (resolve todas as promises aguardando)
+        processQueue(null);
+        
+        // Reenvia a requisição original que falhou
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh falhou: processa fila rejeitando todas as promises
+        processQueue(refreshError, null);
+        
+        // Dispara evento global para notificar expiração da sessão
+        // O app pode ouvir este evento e redirecionar para login
+        window.dispatchEvent(new Event('auth:expired'));
+        
+        return Promise.reject(refreshError);
+      } finally {
+        // Libera a flag para permitir novos refreshs
+        isRefreshing = false;
+      }
     }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const error = new Error(errorData.msg || `Erro ${response.status}`);
-      error.response = response;
-      error.data = errorData;
-      throw error;
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
-    }
-    return await response.text();
-
-  } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error.name === 'AbortError') {
-      const timeoutError = new Error(`Request timeout (${timeout}ms)`);
-      timeoutError.response = null;
-      error = timeoutError;
-    }
-
-    if (retries > 0 && isRetryableError(error)) {
-      console.log(`Retry ${MAX_RETRIES - retries + 1}/${MAX_RETRIES}...`);
-      await delay(RETRY_DELAY * (MAX_RETRIES - retries + 1));
-      return api(endpoint, { ...options, retries: retries - 1 });
-    }
-
-    throw error;
+    // Para outros erros, apenas propaga
+    return Promise.reject(error);
   }
-}
-
-export const apiGet = (endpoint, options) => api(endpoint, { ...options, method: 'GET' });
-export const apiPost = (endpoint, data, options) => api(endpoint, { ...options, method: 'POST', body: JSON.stringify(data) });
-export const apiPut = (endpoint, data, options) => api(endpoint, { ...options, method: 'PUT', body: JSON.stringify(data) });
-export const apiDelete = (endpoint, options) => api(endpoint, { ...options, method: 'DELETE' });
+);
 
 export default api;
