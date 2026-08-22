@@ -14,8 +14,8 @@ export default function ColaboradoresTable() {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await api('colaboradores');
-        setColaboradores(Array.isArray(data) ? data : []);
+        const response = await api('colaboradores');
+        setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar colaboradores:', err);
       } finally {
@@ -45,8 +45,8 @@ export default function ColaboradoresTable() {
   };
 
   const handleSuccess = async () => {
-    const data = await api('colaboradores');
-    setColaboradores(Array.isArray(data) ? data : []);
+    const response = await api('colaboradores');
+    setColaboradores(Array.isArray(response.data) ? response.data : []);
     setShowForm(false);
     setEditing(null);
   };
