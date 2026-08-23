@@ -91,10 +91,12 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const valorNumerico = parseFloat(formData.valor.replace(',', '.'));
+
       const payload = {
         ...formData,
         colaborador_id: parseInt(formData.colaborador_id, 10),
-        valor: parseFloat(formData.valor)
+        valor: isNaN(valorNumerico) ? 0 : valorNumerico
       };
 
       if (despesa) {

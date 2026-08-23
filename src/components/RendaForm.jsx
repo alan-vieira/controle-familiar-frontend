@@ -54,10 +54,12 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const valorNumerico = parseFloat(formData.valor.replace(',', '.'));
+
       const payload = {
         colaborador_id: parseInt(formData.colaborador_id, 10),
         mes_ano: formData.mes_ano,
-        valor: parseFloat(formData.valor)
+        valor: isNaN(valorNumerico) ? 0 : valorNumerico
       };
 
       if (renda) {
