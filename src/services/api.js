@@ -1,4 +1,10 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com').replace(/\/$/, '');
+
+// Validação para evitar request para o próprio frontend
+if (typeof window !== 'undefined' && API_BASE_URL.includes(window.location.origin)) {
+  console.warn('[API] ⚠️ VITE_API_URL aponta para o próprio frontend! Verifique as env vars.');
+  console.warn('[API] Usando fallback:', 'https://controle-familiar.onrender.com');
+}
 
 /**
  * Cliente HTTP estilo Axios usando fetch nativo
