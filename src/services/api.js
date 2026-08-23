@@ -1,4 +1,7 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com').replace(/\/$/, '');
+const rawBaseUrl = (import.meta.env.VITE_API_URL || 'https://controle-familiar.onrender.com').replace(/\/$/, '');
+
+// Remove /api do final se já vier na env var (evita /api//api/)
+const API_BASE_URL = rawBaseUrl.replace(/\/api$/, '');
 
 // Validação para evitar request para o próprio frontend
 if (typeof window !== 'undefined' && API_BASE_URL.includes(window.location.origin)) {
@@ -12,7 +15,7 @@ if (typeof window !== 'undefined' && API_BASE_URL.includes(window.location.origi
  */
 function createApiClient() {
   const request = async (endpoint, options = {}) => {
-    // 1. Monta a URL
+    // 1. Monta a URL - API_BASE_URL já inclui /api (ou não), endpoint é relativo
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}/api/${endpoint}`;
 
     // 2. GARANTIA ABSOLUTA DO CONTENT-TYPE
