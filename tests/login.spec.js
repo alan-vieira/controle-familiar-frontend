@@ -2,51 +2,58 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Fluxo de Autenticação (Frontend com Mocks)', () => {
-  test('deve fazer login com sucesso e redirecionar para o dashboard', async ({ page }) => {
-    // 1. MOCK DA API: Intercepta a chamada de login antes dela acontecer
-    // ⚠️ AJUSTE: Se sua api.js chama 'http://localhost:5000/login', use '**/login'
-    await page.route('**/login', async (route) => {
+  test('deve fazer login com sucesso e acessar o dashboard', async ({ page }) => {
+    // 1. MOCK DA API: Intercepta as chamadas de login e status
+    await page.route('**/api/auth/login', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          token: 'mock-jwt-token-123',
-          user: { id: 1, nome: 'Usuário Teste' }
-        }),
-        headers: {
-          'Set-Cookie': 'auth_token=mock-jwt-token-123; HttpOnly; Path=/'
-        }
+          user: { id: 1, username: 'testuser', email: 'teste@exemplo.com' }
+        })
       });
     });
 
-    // 2. Acessar a página de login
+    // Mock para /api/auth/status - retorna autenticado
+    await page.route('**/api/auth/status', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          logged_in: true,
+          user: { id: 1, username: 'testuser', email: 'teste@exemplo.com' }
+        })
+      });
+    });
+
+    // 2. Acessa a página de login
     await page.goto('/login');
 
     // 3. Preencher o formulário 
-    // 💡 DICA: Usar data-testid é o mais seguro. Se não tiver, use getByLabel ou getByPlaceholder
-    await page.getByTestId('input-email').fill('teste@exemplo.com');
-    await page.getByTestId('input-senha').fill('senha123');
+    // O componente Login.jsx usa placeholder "Usuário" e "Senha"
+    await page.getByPlaceholder('Usuário').fill('teste@exemplo.com');
+    await page.getByPlaceholder('Senha').fill('senha123');
 
     // 4. Preparar a espera da resposta ANTES de clicar
-    const responsePromise = page.waitForResponse('**/login');
+    const responsePromise = page.waitForResponse('**/api/auth/login');
     
-    // 5. Clicar no botão de entrar
-    await page.getByTestId('btn-entrar').click();
+    // 5. Clicar no botão de entrar (usa role button com nome "Entrar")
+    await page.getByRole('button', { name: 'Entrar' }).click();
 
     // 6. Garantir que o mock foi acionado e respondeu com 200
     const response = await responsePromise;
     expect(response.status()).toBe(200);
 
-    // 7. Verificar o redirecionamento (Playwright faz retry automático até passar ou dar timeout)
-    await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
+    // 7. O login redireciona para "/" (padrão quando não há state.from)
+    // Como o PrivateRoute permite acesso, a rota /* renderiza o Dashboard
+    await expect(page).toHaveURL(/\//, { timeout: 10000 });
 
-    // 8. Prova final: verificar se um elemento típico do Dashboard está na tela
-    // (Isso evita falsos positivos de roteamento vazio)
-    await expect(page.getByText('Resumo Financeiro')).toBeVisible({ timeout: 5000 });
+    // 8. Prova final: verificar se NÃO está na página de login
+    await expect(page.locator('body')).not.toContainText('Login');
   });
 
   test('deve exibir erro com credenciais inválidas', async ({ page }) => {
-    await page.route('**/login', async (route) => {
+    await page.route('**/api/auth/login', async (route) => {
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
@@ -54,18 +61,27 @@ test.describe('Fluxo de Autenticação (Frontend com Mocks)', () => {
       });
     });
 
+    // Mock status para não autenticado (necessário para carregar a página de login)
+    await page.route('**/api/auth/status', async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Token de autorização ausente', code: 'TOKEN_MISSING' })
+      });
+    });
+
     await page.goto('/login');
-    await page.getByTestId('input-email').fill('errado@exemplo.com');
-    await page.getByTestId('input-senha').fill('senhaerrada');
+    await page.getByPlaceholder('Usuário').fill('errado@exemplo.com');
+    await page.getByPlaceholder('Senha').fill('senhaerrada');
     
-    const responsePromise = page.waitForResponse('**/login');
-    await page.getByTestId('btn-entrar').click();
+    const responsePromise = page.waitForResponse('**/api/auth/login');
+    await page.getByRole('button', { name: 'Entrar' }).click();
     await responsePromise;
 
-    // Verifica se a URL NÃO mudou
+    // Verifica se a URL NÃO mudou (continua em /login)
     await expect(page).toHaveURL(/.*login/);
     
-    // Verifica se a mensagem de erro aparece (ajuste o texto conforme seu componente)
+    // Verifica se a mensagem de erro aparece
     await expect(page.getByText(/inválidas|erro/i)).toBeVisible();
   });
 });

@@ -19,6 +19,12 @@ INTERVAL=2
 PASSED=0
 FAILED=0
 
+# Descobre o nome do container automaticamente
+CONTAINER_NAME=$(docker compose ps -q frontend 2>/dev/null | head -1)
+if [ -z "$CONTAINER_NAME" ]; then
+    CONTAINER_NAME="controle-familiar-frontend"
+fi
+
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}🧪 Validação do Container Docker${NC}"
 echo -e "${BLUE}=========================================${NC}"
@@ -30,7 +36,7 @@ wait_for_healthy() {
     local elapsed=0
     
     while [ $elapsed -lt $MAX_WAIT ]; do
-        local status=$(docker inspect controle-familiar-frontend --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+        local status=$(docker inspect "$CONTAINER_NAME" --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
         
         if [ "$status" = "healthy" ]; then
             echo -e "\n${GREEN}✅ Container está healthy!${NC}"
