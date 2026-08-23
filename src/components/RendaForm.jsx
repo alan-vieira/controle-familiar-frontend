@@ -1,4 +1,3 @@
-// src/components/RendaForm.jsx
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 
@@ -12,10 +11,10 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [loadingColabs, setLoadingColabs] = useState(true);
 
-  // Carregar lista de colaboradores
   useEffect(() => {
     const loadColaboradores = async () => {
       try {
+        // ✅ CORRETO: Usa response.data
         const response = await api('colaboradores');
         setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
@@ -28,7 +27,6 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     loadColaboradores();
   }, []);
 
-  // Preencher formulário no modo edição
   useEffect(() => {
     if (renda) {
       setFormData({
@@ -37,11 +35,7 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
         valor: renda.valor?.toString() || ''
       });
     } else {
-      setFormData({
-        colaborador_id: '',
-        mes_ano: '',
-        valor: ''
-      });
+      setFormData({ colaborador_id: '', mes_ano: '', valor: '' });
     }
   }, [renda]);
 
@@ -54,8 +48,9 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
+      // ✅ CORRETO: Converte "22,00" para 22.00
       const valorNumerico = parseFloat(formData.valor.replace(',', '.'));
-
+      
       const payload = {
         colaborador_id: parseInt(formData.colaborador_id, 10),
         mes_ano: formData.mes_ano,
@@ -63,19 +58,16 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
       };
 
       if (renda) {
-        // Atualização: só envia valor (conforme backend)
         await api(`rendas/${renda.id}`, {
           method: 'PUT',
           body: JSON.stringify({ valor: payload.valor })
         });
       } else {
-        // Criação: envia todos os campos
         await api('rendas', {
           method: 'POST',
           body: JSON.stringify(payload)
         });
       }
-
       onSuccess();
     } catch (err) {
       alert('Erro ao salvar renda: ' + (err.message || 'tente novamente'));
@@ -87,9 +79,7 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
   if (loadingColabs) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg w-full max-w-md p-6 text-center">
-          Carregando colaboradores...
-        </div>
+        <div className="bg-white rounded-lg w-full max-w-md p-6 text-center">Carregando colaboradores...</div>
       </div>
     );
   }
@@ -97,73 +87,28 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">
-          {renda ? 'Editar Renda' : 'Nova Renda'}
-        </h2>
+        <h2 className="text-xl font-bold mb-4">{renda ? 'Editar Renda' : 'Nova Renda'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Seleção de Colaborador */}
           <div>
             <label className="block text-sm font-medium mb-1">Colaborador *</label>
-            <select
-              name="colaborador_id"
-              value={formData.colaborador_id}
-              onChange={handleChange}
-              required
-              disabled={!!renda} // Não permite trocar colaborador ao editar
-              className="w-full border rounded px-3 py-2"
-            >
+            <select name="colaborador_id" value={formData.colaborador_id} onChange={handleChange} required disabled={!!renda} className="w-full border rounded px-3 py-2">
               <option value="">Selecione</option>
               {colaboradores.map((colab) => (
-                <option key={colab.id} value={colab.id}>
-                  {colab.nome}
-                </option>
+                <option key={colab.id} value={colab.id}>{colab.nome}</option>
               ))}
             </select>
           </div>
-
-          {/* Mês/Ano */}
           <div>
             <label className="block text-sm font-medium mb-1">Mês/Ano *</label>
-            <input
-              type="month"
-              name="mes_ano"
-              value={formData.mes_ano}
-              onChange={handleChange}
-              required
-              disabled={!!renda} // Não permite trocar mês ao editar
-              className="w-full border rounded px-3 py-2"
-            />
+            <input type="month" name="mes_ano" value={formData.mes_ano} onChange={handleChange} required disabled={!!renda} className="w-full border rounded px-3 py-2" />
           </div>
-
-          {/* Valor */}
           <div>
             <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
-            <input
-              type="number"
-              step="0.01"
-              name="valor"
-              value={formData.valor}
-              onChange={handleChange}
-              required
-              min="0"
-              className="w-full border rounded px-3 py-2"
-            />
+            <input type="number" step="0.01" name="valor" value={formData.valor} onChange={handleChange} required min="0" className="w-full border rounded px-3 py-2" />
           </div>
-
-          {/* Botões */}
           <div className="flex justify-end space-x-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50"
-            >
+            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+            <button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50">
               {loading ? 'Salvando...' : 'Salvar'}
             </button>
           </div>

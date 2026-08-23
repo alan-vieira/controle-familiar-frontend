@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../services/auth';
 import api from '../services/api';
 
 export default function Header() {
@@ -7,7 +6,8 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await api.post('/api/auth/logout');
+      // ✅ CORRETO: Usa a função api() com method: 'POST'
+      await api('auth/logout', { method: 'POST' });
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     } finally {
