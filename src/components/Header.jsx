@@ -6,8 +6,8 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      // ✅ CORRETO: Usa a função api() com method: 'POST'
-      await api('auth/logout', { method: 'POST' });
+      // ✅ NOVO ESTILO: Usa api.post() igual ao auth.js
+      await api.post('auth/logout');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     } finally {
