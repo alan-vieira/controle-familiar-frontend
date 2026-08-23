@@ -47,8 +47,8 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
   useEffect(() => {
     const loadColaboradores = async () => {
       try {
-        const data = await api('colaboradores');
-        setColaboradores(Array.isArray(data) ? data : []);
+        const response = await api('colaboradores');
+        setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar colaboradores:', err);
         alert('Erro ao carregar lista de colaboradores.');
