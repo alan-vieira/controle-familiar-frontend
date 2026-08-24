@@ -5,7 +5,7 @@
 ![Vite 5.0.12](https://img.shields.io/badge/Vite-5.0.12-646CFF?logo=vite)
 ![Tailwind 3.4.1](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?logo=tailwind-css)
 ![PWA](https://img.shields.io/badge/PWA-vite--plugin--pwa-5A0FC8?logo=pwa)
-![Release v0.4.1](https://img.shields.io/badge/Release-v0.4.1-blue)
+![Release v0.4.2](https://img.shields.io/badge/Release-v0.4.2-blue)
 ![Node 22.x](https://img.shields.io/badge/Node-22.x-339933?logo=node.js)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions)
