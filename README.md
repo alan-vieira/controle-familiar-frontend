@@ -221,6 +221,8 @@ Todas as mudanças seguem [Keep a Changelog](https://keepachangelog.com/pt-BR/1.
 Veja **[CHANGELOG.md](CHANGELOG.md)** para histórico completo.
 
 ### Releases recentes
+- **v0.4.2** — Teclado numérico PWA customizado (estilo app bancário), correções de bugs mobile (closure stale, event bubbling, openKeypad), formatação inteligente de moeda
+- **v0.4.1** — Segurança: migração para Cookies HttpOnly + Refresh Token automático, remoção completa de localStorage para autenticação
 - **v0.4.0** — Infraestrutura completa: Docker, Playwright E2E, CI/CD e validação automatizada
 - **v0.3.3** — Correção final de bug visual na navbar (texto duplicado)
 - **v0.3.2** — Correção crítica de navegação entre abas (separação id vs label)
