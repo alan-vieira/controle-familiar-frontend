@@ -49,6 +49,21 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Máscara para campo valor (moeda brasileira)
+    if (name === 'valor') {
+      // Remove tudo que não é dígito
+      const digits = value.replace(/\D/g, '');
+      // Formata como moeda brasileira: 123456 -> 1.234,56
+      let formatted = '';
+      if (digits.length > 0) {
+        const num = parseInt(digits, 10);
+        formatted = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -120,7 +135,7 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
-            <input type="text" inputMode="decimal" pattern="[0-9]*[,.]?[0-9]*" name="valor" value={formData.valor} onChange={handleChange} required min="0" className="w-full border rounded px-3 py-2" placeholder="0,00" />
+            <input type="tel" name="valor" value={formData.valor} onChange={handleChange} required min="0" className="w-full border rounded px-3 py-2" placeholder="0,00" />
           </div>
           <div className="flex justify-end space-x-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
