@@ -17,20 +17,19 @@ const api = axios.create({
 // INTERCEPTORS
 // ============================================
 
-// Request: Garante prefixo /api + logs + garante body
+// Request: Garante prefixo /api + logs
 api.interceptors.request.use((config) => {
   // 1. URL: garante prefixo /api
   if (!config.url?.startsWith('http') && !config.url?.startsWith('/api')) {
     config.url = `/api${config.url?.startsWith('/') ? config.url : '/' + config.url}`;
   }
 
-  // 2. GARANTE BODY: Se tem data e é POST/PUT/PATCH, garante que está no config
-  if (config.data && ['post', 'put', 'patch'].includes(config.method?.toLowerCase())) {
-    // Axios deveria fazer isso automaticamente, mas garante
-    if (typeof config.data === 'object' && !(config.data instanceof FormData)) {
-      config.data = JSON.stringify(config.data);
-      config.headers['Content-Type'] = 'application/json';
-    }
+  // 2. HEADERS: Garante Content-Type para POST/PUT/PATCH com body
+  const method = config.method?.toLowerCase();
+  if (config.data && ['post', 'put', 'patch'].includes(method)) {
+    // NÃO faz JSON.stringify() - Axios faz automaticamente
+    // Apenas garante o header
+    config.headers['Content-Type'] = 'application/json';
   }
 
   // Logs
