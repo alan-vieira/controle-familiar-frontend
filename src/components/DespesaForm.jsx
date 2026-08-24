@@ -39,36 +39,43 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
       setFormData({
         data_compra: despesa.data_compra || '', descricao: despesa.descricao || '',
         categoria: despesa.categoria || 'alimentacao', tipo_pg: despesa.tipo_pg || 'dinheiro',
-        colaborador_id: despesa.colaborador_id?.toString() || '', valor: despesa.valor?.toString() || ''
+        colaborador_id: despesa.colaborador_id?.toString() || '', valor: despesa.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || ''
       });
     } else {
       setFormData({ data_compra: '', descricao: '', categoria: 'alimentacao', tipo_pg: 'dinheiro', colaborador_id: '', valor: '' });
     }
   }, [despesa]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Função para formatar moeda brasileira enquanto digita
+  const formatCurrencyInput = (value) => {
+    // Remove tudo que não é dígito
+    const digits = value.replace(/\D/g, '');
+    if (!digits) return '';
+    
+    // Converte para número e formata como moeda brasileira
+    const num = parseInt(digits, 10);
+    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Formata valor para exibição (opcional, no blur)
-  const handleValorBlur = (e) => {
-    const { value } = e.target;
-    if (!value) return;
-    // Converte "22,50" ou "22.50" para "22,50" formatado
-    const normalized = value.replace('.', ',').replace(',', '.');
-    const num = parseFloat(normalized);
-    if (!isNaN(num)) {
-      setFormData(prev => ({ ...prev, valor: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'valor') {
+      // Aplica máscara em tempo real enquanto digita
+      const formatted = formatCurrencyInput(value);
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+      return;
     }
+    
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Converte "22,00" ou "22.00" para número
-      const valorNumerico = parseFloat(formData.valor.replace(',', '.'));
+      // Converte "1.234,56" para 1234.56
+      const valorNumerico = parseFloat(formData.valor.replace(/\./g, '').replace(',', '.'));
       
       const payload = {
         ...formData,
@@ -133,17 +140,18 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
             <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
             <input
               type="text"
-              inputMode="decimal"
+              inputMode="numeric"
+              pattern="[0-9]*"
               name="valor"
               value={formData.valor}
               onChange={handleChange}
-              onBlur={handleValorBlur}
               required
-              min="0"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-right font-mono"
               placeholder="0,00"
               autoComplete="off"
+              style={{ fontSize: '1.1rem' }}
             />
+            <p className="text-xs text-gray-500 mt-1">Digite apenas números. Ex: 123456 → 1.234,56</p>
           </div>
           <div className="flex justify-end space-x-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>

@@ -14,7 +14,6 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
   useEffect(() => {
     const loadColaboradores = async () => {
       try {
-        // ✅ NOVA API: usa api.get()
         const response = await api.get('colaboradores');
         setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
@@ -32,36 +31,39 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
       setFormData({
         colaborador_id: renda.colaborador_id?.toString() || '',
         mes_ano: renda.mes_ano || '',
-        valor: renda.valor?.toString() || ''
+        valor: renda.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || ''
       });
     } else {
       setFormData({ colaborador_id: '', mes_ano: '', valor: '' });
     }
   }, [renda]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Função para formatar moeda brasileira enquanto digita
+  const formatCurrencyInput = (value) => {
+    const digits = value.replace(/\D/g, '');
+    if (!digits) return '';
+    const num = parseInt(digits, 10);
+    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Formata valor para exibição (opcional, no blur)
-  const handleValorBlur = (e) => {
-    const { value } = e.target;
-    if (!value) return;
-    // Converte "22,50" ou "22.50" para "22,50" formatado
-    const normalized = value.replace('.', ',').replace(',', '.');
-    const num = parseFloat(normalized);
-    if (!isNaN(num)) {
-      setFormData(prev => ({ ...prev, valor: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'valor') {
+      const formatted = formatCurrencyInput(value);
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+      return;
     }
+    
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // ✅ CORRETO: Converte "22,00" para 22.00
-      const valorNumerico = parseFloat(formData.valor.replace(',', '.'));
+      // Converte "1.234,56" para 1234.56
+      const valorNumerico = parseFloat(formData.valor.replace(/\./g, '').replace(',', '.'));
 
       const payload = {
         colaborador_id: parseInt(formData.colaborador_id, 10),
@@ -112,17 +114,18 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
             <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
             <input
               type="text"
-              inputMode="decimal"
+              inputMode="numeric"
+              pattern="[0-9]*"
               name="valor"
               value={formData.valor}
               onChange={handleChange}
-              onBlur={handleValorBlur}
               required
-              min="0"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-right font-mono"
               placeholder="0,00"
               autoComplete="off"
+              style={{ fontSize: '1.1rem' }}
             />
+            <p className="text-xs text-gray-500 mt-1">Digite apenas números. Ex: 123456 → 1.234,56</p>
           </div>
           <div className="flex justify-end space-x-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
