@@ -273,7 +273,8 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
 
   const handleKeypadBlur = () => {
     if (keypadField) {
-      const value = formData[keypadField];
+      // Usa keypadValue que é atualizado em tempo real pelo handleKeypadChange
+      const value = keypadValue;
       if (value) {
         const normalized = value.replace('.', '').replace(',', '.');
         const num = parseFloat(normalized);
@@ -288,7 +289,6 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
 
   const handleKeypadSubmit = () => {
     if (keypadField) {
-      // Usa o valor já salvo no formData (atualizado pelo handleKeypadChange)
       onBlur?.();
     }
     setShowKeypad(false);
