@@ -56,18 +56,22 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
   }, []);
 
   return (
-    <div className="numeric-keypad" style={{ 
-      position: 'fixed', 
-      bottom: 0, 
-      left: 0, 
-      right: 0, 
-      zIndex: 1000,
-      backgroundColor: '#fff',
-      borderTop: '1px solid #e5e7eb',
-      boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.1)',
-      padding: '16px 16px 24px',
-      paddingBottom: 'max(24px, env(safe-area-inset-bottom))'
-    }}>
+    <div 
+      className="numeric-keypad" 
+      onClick={(e) => e.stopPropagation()}
+      style={{ 
+        position: 'fixed', 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        zIndex: 1000,
+        backgroundColor: '#fff',
+        borderTop: '1px solid #e5e7eb',
+        boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.1)',
+        padding: '16px 16px 24px',
+        paddingBottom: 'max(24px, env(safe-area-inset-bottom))'
+      }}
+    >
       <div style={{
         textAlign: 'right',
         padding: '16px',
