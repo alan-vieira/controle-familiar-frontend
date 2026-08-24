@@ -297,8 +297,7 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
 
   const handleKeypadSubmit = () => {
     if (keypadField) {
-      // Atualiza o formData com o valor do keypad antes de fechar
-      setFormData(prev => ({ ...prev, [keypadField]: keypadValue }));
+      // Usa o valor já salvo no formData (atualizado pelo handleKeypadChange)
       onBlur?.();
     }
     setShowKeypad(false);
