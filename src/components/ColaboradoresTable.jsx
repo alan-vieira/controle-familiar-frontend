@@ -14,7 +14,7 @@ export default function ColaboradoresTable() {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await api('colaboradores');
+        const response = await api.get('colaboradores');
         setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar colaboradores:', err);
@@ -36,7 +36,7 @@ export default function ColaboradoresTable() {
 
   const handleDeleteConfirm = async () => {
     try {
-      await api(`colaboradores/${showDeleteConfirm}`, { method: 'DELETE' });
+      await api.delete(`colaboradores/${showDeleteConfirm}`);
       setColaboradores(colaboradores.filter(c => c.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
     } catch (err) {
@@ -45,7 +45,7 @@ export default function ColaboradoresTable() {
   };
 
   const handleSuccess = async () => {
-    const response = await api('colaboradores');
+    const response = await api.get('colaboradores');
     setColaboradores(Array.isArray(response.data) ? response.data : []);
     setShowForm(false);
     setEditing(null);

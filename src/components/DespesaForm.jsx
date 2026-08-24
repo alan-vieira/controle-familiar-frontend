@@ -22,8 +22,8 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
   useEffect(() => {
     const loadColaboradores = async () => {
       try {
-        // ✅ CORRETO: Usa response.data
-        const response = await api('colaboradores');
+        // ✅ NOVA API: usa api.get()
+        const response = await api.get('colaboradores');
         setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar colaboradores:', err);
@@ -66,9 +66,9 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
       };
 
       if (despesa) {
-        await api(`despesas/${despesa.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        await api.put(`despesas/${despesa.id}`, payload);
       } else {
-        await api('despesas', { method: 'POST', body: JSON.stringify(payload) });
+        await api.post('despesas', payload);
       }
       onSuccess();
     } catch (err) {

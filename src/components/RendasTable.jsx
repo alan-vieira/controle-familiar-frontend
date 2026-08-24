@@ -23,7 +23,7 @@ export default function RendasTable({ mesAno }) {
 
       setLoading(true);
       try {
-        const response = await api(`rendas?mes=${mesAno}`);
+        const response = await api.get(`rendas?mes=${mesAno}`);
         setRendas(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar rendas:', err);
@@ -47,7 +47,7 @@ export default function RendasTable({ mesAno }) {
 
   const handleDeleteConfirm = async () => {
     try {
-      await api(`rendas/${showDeleteConfirm}`, { method: 'DELETE' });
+      await api.delete(`rendas/${showDeleteConfirm}`);
       setRendas(rendas.filter(r => r.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
     } catch (err) {
@@ -59,7 +59,7 @@ export default function RendasTable({ mesAno }) {
     // Recarrega as rendas do mês atual
     if (mesAno) {
       try {
-        const response = await api(`rendas?mes=${mesAno}`);
+        const response = await api.get(`rendas?mes=${mesAno}`);
         setRendas(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao recarregar rendas:', err);

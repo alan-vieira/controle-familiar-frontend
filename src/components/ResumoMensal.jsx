@@ -23,8 +23,8 @@ export default function ResumoMensal({ mesAno }) {
       setError('');
       try {
         // ✅ CORREÇÃO: Ler response.data em vez do objeto de resposta inteiro
-        const resumoResponse = await api(`resumo/${mesAno}`);
-        const divisaoResponse = await api(`divisao/${mesAno}`);
+        const resumoResponse = await api.get(`resumo/${mesAno}`);
+        const divisaoResponse = await api.get(`divisao/${mesAno}`);
         
         setResumo(resumoResponse.data);
         setDivisaoStatus(divisaoResponse.data);
@@ -43,10 +43,7 @@ export default function ResumoMensal({ mesAno }) {
     if (!mesAno) return;
     try {
       // ✅ CORREÇÃO: Axios usa 'data', não 'body'. E ler response.data
-      const response = await api(`divisao/${mesAno}/marcar-pago`, {
-        method: 'POST',
-        data: {}, 
-      });
+      const response = await api.post(`divisao/${mesAno}/marcar-pago`, {});
       setDivisaoStatus(response.data);
     } catch (err) {
       alert('Erro ao marcar como pago: ' + (err.response?.data?.error || err.message));
@@ -57,7 +54,7 @@ export default function ResumoMensal({ mesAno }) {
     if (!mesAno) return;
     try {
       // ✅ CORREÇÃO: Ler response.data
-      const response = await api(`divisao/${mesAno}/desmarcar-pago`, { method: 'POST' });
+      const response = await api.post(`divisao/${mesAno}/desmarcar-pago`, {});
       setDivisaoStatus(response.data);
     } catch (err) {
       alert('Erro ao desmarcar como pago: ' + (err.response?.data?.error || err.message));

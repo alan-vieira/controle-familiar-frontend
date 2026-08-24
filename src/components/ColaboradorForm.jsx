@@ -33,9 +33,9 @@ export default function ColaboradorForm({ colaborador, onClose, onSuccess }) {
     setLoading(true);
     try {
       if (colaborador) {
-        await api(`colaboradores/${colaborador.id}`, { method: 'PUT', body: JSON.stringify(formData) });
+        await api.put(`colaboradores/${colaborador.id}`, formData);
       } else {
-        await api('colaboradores', { method: 'POST', body: JSON.stringify(formData) });
+        await api.post('colaboradores', formData);
       }
       onSuccess();
     } catch (err) {

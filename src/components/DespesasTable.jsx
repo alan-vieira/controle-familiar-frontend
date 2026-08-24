@@ -34,7 +34,7 @@ export default function DespesasTable({ mesAno }) {
     const load = async () => {
       if (!mesAno) return;
       try {
-        const response = await api(`despesas?mes_vigente=${mesAno}`);
+        const response = await api.get(`despesas?mes_vigente=${mesAno}`);
         setDespesas(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar despesas:', err);
@@ -56,7 +56,7 @@ export default function DespesasTable({ mesAno }) {
 
   const handleDeleteConfirm = async () => {
     try {
-      await api(`despesas/${showDeleteConfirm}`, { method: 'DELETE' });
+      await api.delete(`despesas/${showDeleteConfirm}`);
       setDespesas(despesas.filter(d => d.id !== showDeleteConfirm));
       setShowDeleteConfirm(null);
     } catch (err) {
@@ -65,7 +65,7 @@ export default function DespesasTable({ mesAno }) {
   };
 
     const handleSuccess = async () => {
-      const response = await api(`despesas?mes_vigente=${mesAno}`);
+      const response = await api.get(`despesas?mes_vigente=${mesAno}`);
       setDespesas(Array.isArray(response.data) ? response.data : []);
       setShowForm(false);
       setEditing(null);
