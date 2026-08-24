@@ -288,6 +288,8 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
 
   const handleKeypadSubmit = () => {
     if (keypadField) {
+      // Atualiza o formData com o valor do keypad antes de fechar
+      setFormData(prev => ({ ...prev, [keypadField]: keypadValue }));
       onBlur?.();
     }
     setShowKeypad(false);
