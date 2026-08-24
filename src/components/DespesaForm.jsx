@@ -46,37 +46,32 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
     }
   }, [despesa]);
 
-  // Função para formatar moeda brasileira enquanto digita
-  const formatCurrencyInput = (value) => {
-    // Remove tudo que não é dígito
-    const digits = value.replace(/\D/g, '');
-    if (!digits) return '';
-    
-    // Converte para número e formata como moeda brasileira
-    const num = parseInt(digits, 10);
-    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name === 'valor') {
-      // Aplica máscara em tempo real enquanto digita
-      const formatted = formatCurrencyInput(value);
-      setFormData(prev => ({ ...prev, [name]: formatted }));
-      return;
-    }
-    
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // No blur: formata "26" → "26,00", "26,50" → "26,50", "26.50" → "26,50"
+  // APENAS no blur - não enquanto digita (evita problemas de backspace/máscara)
+  const handleValorBlur = (e) => {
+    const { value } = e.target;
+    if (!value) return;
+    
+    // Normaliza: aceita vírgula OU ponto como separador decimal
+    const normalized = value.replace('.', '').replace(',', '.');
+    const num = parseFloat(normalized);
+    if (!isNaN(num)) {
+      setFormData(prev => ({ ...prev, valor: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Converte "1.234,56" para 1234.56
+      // Converte "26,00" ou "26.00" ou "26" para número
       const valorNumerico = parseFloat(formData.valor.replace(/\./g, '').replace(',', '.'));
-      
+
       const payload = {
         ...formData,
         colaborador_id: parseInt(formData.colaborador_id, 10),
@@ -140,18 +135,18 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
             <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
             <input
               type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
+              inputMode="decimal"
+              pattern="[0-9]*[,.]?[0-9]*"
               name="valor"
               value={formData.valor}
               onChange={handleChange}
+              onBlur={handleValorBlur}
               required
-              className="w-full border rounded px-3 py-2 text-right font-mono"
+              className="w-full border rounded px-3 py-2 text-right"
               placeholder="0,00"
               autoComplete="off"
-              style={{ fontSize: '1.1rem' }}
             />
-            <p className="text-xs text-gray-500 mt-1">Digite apenas números. Ex: 123456 → 1.234,56</p>
+            <p className="text-xs text-gray-500 mt-1">Digite: 26 → 26,00 | 26,50 | 26.50</p>
           </div>
           <div className="flex justify-end space-x-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
