@@ -269,8 +269,8 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
   };
 
   const openKeypad = (fieldName, currentValue) => {
-    setKeypadField(name);
-    setKeypadValue(formData[name] || '');
+    setKeypadField(fieldName);
+    setKeypadValue(formData[fieldName] || '');
     setShowKeypad(true);
   };
 
