@@ -22,7 +22,6 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
   useEffect(() => {
     const loadColaboradores = async () => {
       try {
-        // ✅ NOVA API: usa api.get()
         const response = await api.get('colaboradores');
         setColaboradores(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
@@ -49,29 +48,26 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Máscara para campo valor (moeda brasileira)
-    if (name === 'valor') {
-      // Remove tudo que não é dígito
-      const digits = value.replace(/\D/g, '');
-      // Formata como moeda brasileira: 123456 -> 1.234,56
-      let formatted = '';
-      if (digits.length > 0) {
-        const num = parseInt(digits, 10);
-        formatted = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      }
-      setFormData(prev => ({ ...prev, [name]: formatted }));
-      return;
-    }
-    
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Formata valor para exibição (opcional, no blur)
+  const handleValorBlur = (e) => {
+    const { value } = e.target;
+    if (!value) return;
+    // Converte "22,50" ou "22.50" para "22,50" formatado
+    const normalized = value.replace('.', ',').replace(',', '.');
+    const num = parseFloat(normalized);
+    if (!isNaN(num)) {
+      setFormData(prev => ({ ...prev, valor: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // ✅ CORRETO: Converte "22,00" para 22.00
+      // Converte "22,00" ou "22.00" para número
       const valorNumerico = parseFloat(formData.valor.replace(',', '.'));
       
       const payload = {
@@ -135,7 +131,19 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
-            <input type="tel" name="valor" value={formData.valor} onChange={handleChange} required min="0" className="w-full border rounded px-3 py-2" placeholder="0,00" />
+            <input
+              type="text"
+              inputMode="decimal"
+              name="valor"
+              value={formData.valor}
+              onChange={handleChange}
+              onBlur={handleValorBlur}
+              required
+              min="0"
+              className="w-full border rounded px-3 py-2"
+              placeholder="0,00"
+              autoComplete="off"
+            />
           </div>
           <div className="flex justify-end space-x-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
