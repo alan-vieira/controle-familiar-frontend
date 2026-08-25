@@ -26,8 +26,8 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
         newValue = displayValue + ',';
       }
     } else if (key === 'enter') {
-      onBlur?.();
-      onSubmit?.();
+      onBlur?.(displayValue);
+      onSubmit?.(displayValue);
       return;
     } else if (/^\d$/.test(key)) {
       const parts = displayValue.split(',');
@@ -192,7 +192,7 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
           
           <button
             key="enter"
-            onClick={() => { onBlur?.(); onSubmit?.(); }}
+            onClick={() => { onBlur?.(displayValue); onSubmit?.(displayValue); }}
             disabled={disabled || !displayValue}
             style={{
               padding: '16px',

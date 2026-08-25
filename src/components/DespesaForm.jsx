@@ -36,8 +36,9 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
         newValue = displayValue + ',';
       }
     } else if (key === 'enter') {
-      onBlur?.();
-      onSubmit?.();
+      // Passa o valor atual diretamente para evitar race condition
+      onBlur?.(displayValue);
+      onSubmit?.(displayValue);
       return;
     } else if (/^\d$/.test(key)) {
       const parts = displayValue.split(',');
@@ -202,7 +203,7 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
           
           <button
             key="enter"
-            onClick={() => { onBlur?.(); onSubmit?.(); }}
+            onClick={() => { onBlur?.(displayValue); onSubmit?.(displayValue); }}
             disabled={disabled || !displayValue}
             style={{
               padding: '16px',
@@ -408,3 +409,13 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
     </>
   );
 }
+
+const CATEGORIAS = ['moradia', 'alimentacao', 'restaurante_lanche', 'casa_utilidades', 'saude', 'transporte', 'lazer_outros'];
+const CATEGORIA_LABELS = {
+  moradia: 'Moradia', alimentacao: 'Alimentação', restaurante_lanche: 'Rest./Lanche',
+  casa_utilidades: 'Casa/Util.', saude: 'Saúde', transporte: 'Transporte', lazer_outros: 'Lazer/Outros'
+};
+const TIPOS_PAGAMENTO = [
+  { value: 'dinheiro', label: 'Dinheiro' }, { value: 'debito', label: 'Débito' },
+  { value: 'credito', label: 'Crédito' }, { value: 'pix', label: 'Pix' }, { value: 'outros', label: 'Outros' }
+];
