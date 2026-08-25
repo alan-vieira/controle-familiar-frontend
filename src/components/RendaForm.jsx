@@ -242,12 +242,27 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     loadColaboradores();
   }, []);
 
+  // Helper: converte string do backend (ex: "1234.56") para formato BR (ex: "1.234,56")
+  const formatValorBR = (valor) => {
+    if (!valor && valor !== 0) return '';
+    const num = parseFloat(valor);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  // Helper: converte formato BR (ex: "1.234,56") para número
+  const parseValorBR = (valorBR) => {
+    if (!valorBR) return 0;
+    return parseFloat(valorBR.replace(/\./g, '').replace(',', '.'));
+  };
+
   useEffect(() => {
     if (renda) {
       setFormData({
         colaborador_id: renda.colaborador_id?.toString() || '',
         mes_ano: renda.mes_ano || '',
-        valor: renda.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || ''
+        // API retorna valor como string "1234.56" → converte para "1.234,56"
+        valor: formatValorBR(renda.valor)
       });
     } else {
       setFormData({ colaborador_id: '', mes_ano: '', valor: '' });
@@ -261,25 +276,28 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
 
   const openKeypad = (fieldName, currentValue) => {
     setKeypadField(fieldName);
-    // Normaliza: remove formatação, deixa só dígitos para o keypad
-    const normalized = (formData[fieldName] || '').replace(/\D/g, '');
-    setKeypadValue(normalized);
+    // Se o valor já está no formato BR "1.234,56", extrai só os dígitos para o keypad
+    // O keypad trabalha com string de dígitos (ex: "123456" para 1.234,56)
+    const rawValue = formData[fieldName] || '';
+    const onlyDigits = rawValue.replace(/\D/g, '');
+    setKeypadValue(onlyDigits);
     setShowKeypad(true);
   };
 
   const handleKeypadChange = (value) => {
     if (keypadField) {
+      // value vem do keypad como string de dígitos (ex: "123456")
+      // Atualiza formData mantendo formato de dígitos para o keypad funcionar
       setFormData(prev => ({ ...prev, [keypadField]: value }));
     }
   };
 
   const handleKeypadBlur = () => {
     if (keypadField) {
-      // Usa keypadValue que é atualizado em tempo real pelo handleKeypadChange
-      const value = keypadValue;
-      if (value) {
-        const normalized = value.replace('.', '').replace(',', '.');
-        const num = parseFloat(normalized);
+      const digitsOnly = keypadValue;
+      if (digitsOnly) {
+        // Converte dígitos "123456" → número 1234.56 → formato BR "1.234,56"
+        const num = parseInt(digitsOnly, 10) / 100;
         if (!isNaN(num)) {
           setFormData(prev => ({ ...prev, [keypadField]: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
         }
@@ -301,7 +319,8 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const valorNumerico = parseFloat(formData.valor.replace(/\./g, '').replace(',', '.'));
+      // formData.valor está no formato BR "1.234,56" → converte para número
+      const valorNumerico = parseValorBR(formData.valor);
 
       const payload = {
         colaborador_id: parseInt(formData.colaborador_id, 10),
