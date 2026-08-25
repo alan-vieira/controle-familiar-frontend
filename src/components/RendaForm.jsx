@@ -261,7 +261,9 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
 
   const openKeypad = (fieldName, currentValue) => {
     setKeypadField(fieldName);
-    setKeypadValue(formData[fieldName] || '');
+    // Normaliza: remove formatação, deixa só dígitos para o keypad
+    const normalized = (formData[fieldName] || '').replace(/\D/g, '');
+    setKeypadValue(normalized);
     setShowKeypad(true);
   };
 
