@@ -15,6 +15,7 @@ const TIPOS_PAGAMENTO = [
 function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
   const [displayValue, setDisplayValue] = useState(value || '');
   const inputRef = useRef(null);
+  const prevValueRef = useRef(value);
 
   // Formata valor para exibição pt-BR (ex: "1600" → "16,00", "16.00" → "16,00")
   // Se já está formatado BR ("16,00" ou "1.234,56"), retorna como está
@@ -30,13 +31,19 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
     return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Sincroniza displayValue com value prop (formata se vier como número/string)
+  // Sincroniza displayValue com value prop APENAS se o valor prop mudou externamente
+  // (não sobrescreve se o usuário está digitando)
   useEffect(() => {
     const formatted = formatarParaExibicao(value);
-    if (formatted !== displayValue) {
-      setDisplayValue(formatted);
+    // Só atualiza se o value prop mudou E o displayValue ainda reflete o valor anterior
+    if (value !== prevValueRef.current) {
+      const prevFormatted = formatarParaExibicao(prevValueRef.current);
+      if (displayValue === prevFormatted || displayValue === '') {
+        setDisplayValue(formatted);
+      }
+      prevValueRef.current = value;
     }
-  }, [value]);
+  }, [value, displayValue]);
 
   const handleKey = (key) => {
     if (disabled) return;
@@ -325,7 +332,9 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
   const handleKeypadChange = (value) => {
     if (keypadField) {
       // value vem do keypad no formato BR (ex: "26,00" ou "0,00")
+      // Atualiza AMBOS: formData (para o formulário) E keypadValue (para o keypad não sobrescrever)
       setFormData(prev => ({ ...prev, [keypadField]: value }));
+      setKeypadValue(value); // Mantém sincronizado para evitar overwrite do useEffect
     }
   };
 
