@@ -16,9 +16,25 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
   const [displayValue, setDisplayValue] = useState(value || '');
   const inputRef = useRef(null);
 
+  // Formata valor para exibição pt-BR (ex: "1600" → "16,00", "16.00" → "16,00")
+  // Se já está formatado BR ("16,00" ou "1.234,56"), retorna como está
+  const formatarParaExibicao = (valor) => {
+    if (!valor && valor !== 0) return '';
+    const str = String(valor);
+    // Se termina com vírgula + 2 dígitos (ex: "16,00", "1.234,56"), já é formato BR
+    if (/,\d{2}$/.test(str)) {
+      return str;
+    }
+    const numero = parseFloat(str.replace(',', '.'));
+    if (isNaN(numero)) return '';
+    return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  // Sincroniza displayValue com value prop (formata se vier como número/string)
   useEffect(() => {
-    if (value !== displayValue) {
-      setDisplayValue(value || '');
+    const formatted = formatarParaExibicao(value);
+    if (formatted !== displayValue) {
+      setDisplayValue(formatted);
     }
   }, [value]);
 
@@ -30,13 +46,14 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
     if (key === 'backspace') {
       newValue = displayValue.slice(0, -1);
     } else if (key === 'clear') {
-      newValue = '';
+      // Qwen fix: Limpar zera para '0,00' em vez de vazio
+      newValue = '0,00';
     } else if (key === ',' || key === '.') {
       if (!displayValue.includes(',') && !displayValue.includes('.')) {
         newValue = displayValue + ',';
       }
     } else if (key === 'enter') {
-      // Passa o valor atual diretamente para evitar race condition
+      // Passa o valor formatado para evitar race condition
       onBlur?.(displayValue);
       onSubmit?.(displayValue);
       return;
@@ -45,7 +62,12 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
       if (parts.length === 2 && parts[1].length >= 2) {
         return;
       }
-      newValue = displayValue + key;
+      // Se displayValue é '0,00', substitui pelo dígito
+      if (displayValue === '0,00') {
+        newValue = key;
+      } else {
+        newValue = displayValue + key;
+      }
     }
     
     setDisplayValue(newValue);
@@ -204,7 +226,7 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
           <button
             key="enter"
             onClick={() => { onBlur?.(displayValue); onSubmit?.(displayValue); }}
-            disabled={disabled || !displayValue}
+            disabled={disabled || !displayValue || displayValue === '0,00'}
             style={{
               padding: '16px',
               fontSize: '1rem',
@@ -266,6 +288,7 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
     return parseFloat(valorBR.replace(/\./g, '').replace(',', '.'));
   };
 
+  // Qwen fix: reset keypadValue quando despesa muda (abre edição)
   useEffect(() => {
     if (despesa) {
       setFormData({
@@ -277,8 +300,11 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
         // API retorna valor como string "1234.56" → converte para "1.234,56"
         valor: formatValorBR(despesa.valor)
       });
+      // Reseta keypadValue para valor formatado (ex: "16,00")
+      setKeypadValue(formatValorBR(despesa.valor));
     } else {
       setFormData({ data_compra: '', descricao: '', categoria: 'alimentacao', tipo_pg: 'dinheiro', colaborador_id: '', valor: '' });
+      setKeypadValue('');
     }
   }, [despesa]);
 
@@ -289,18 +315,16 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
 
   const openKeypad = (fieldName, currentValue) => {
     setKeypadField(fieldName);
-    // Se o valor já está no formato BR "1.234,56", extrai só os dígitos para o keypad
-    // O keypad trabalha com string de dígitos (ex: "123456" para 1.234,56)
+    // Se o valor já está no formato BR "1.234,56", passa direto para o keypad
+    // O keypad formata automaticamente via formatarParaExibicao
     const rawValue = formData[fieldName] || '';
-    const onlyDigits = rawValue.replace(/\D/g, '');
-    setKeypadValue(onlyDigits);
+    setKeypadValue(rawValue);
     setShowKeypad(true);
   };
 
   const handleKeypadChange = (value) => {
     if (keypadField) {
-      // value vem do keypad como string de dígitos (ex: "123456")
-      // Atualiza formData mantendo formato de dígitos para o keypad funcionar
+      // value vem do keypad no formato BR (ex: "26,00" ou "0,00")
       setFormData(prev => ({ ...prev, [keypadField]: value }));
     }
   };
@@ -309,21 +333,18 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
   const handleKeypadBlur = (passedValue) => {
     if (keypadField) {
       // O keypad passa o valor formatado (ex: "26,00") via onBlur(displayValue)
-      // Se não veio valor, usa o keypadValue state (formato dígitos "123456")
+      // Se não veio valor, usa o keypadValue state (formato BR "16,00")
       const valueToUse = passedValue || keypadValue;
       
-      if (valueToUse) {
-        let num;
-        if (valueToUse.includes(',')) {
-          // Valor já está no formato BR "26,00" → converte direto para número
-          num = parseFloat(valueToUse.replace(',', '.'));
-        } else {
-          // Valor em dígitos puros "123456" → divide por 100
-          num = parseInt(valueToUse, 10) / 100;
-        }
+      if (valueToUse && valueToUse !== '0,00') {
+        // Converte "26,00" → 26.00 → formata "26,00"
+        const num = parseFloat(valueToUse.replace(',', '.'));
         if (!isNaN(num)) {
           setFormData(prev => ({ ...prev, [keypadField]: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
         }
+      } else if (valueToUse === '0,00') {
+        // Usuário limpou o campo - deixa vazio
+        setFormData(prev => ({ ...prev, [keypadField]: '' }));
       }
     }
     setShowKeypad(false);
