@@ -5,6 +5,24 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-br/).
 
+## [0.4.3] - 2026-08-26
+
+### Fixed
+- Corrigir bug do botão "Limpar" no teclado numérico que impedia digitação após limpar valor
+- Reordenar lógica de verificação de casas decimais no handleKey do NumericKeypad
+
+### Added
+- Hook useIsMobile para detecção automática de dispositivos mobile
+- Renderização condicional do teclado customizado (apenas em mobile)
+- Input numérico padrão para desktop com formatação pt-BR no blur
+- Suporte a inputMode="decimal" condicional baseado no dispositivo
+
+### Changed
+- DespesaForm.jsx: adicionar detecção mobile e input alternativo para desktop
+- RendaForm.jsx: aplicar mesma lógica de detecção mobile
+
+---
+
 ## [0.4.2] - 2026-08-24
 
 ### 🐛 Correções (Bug Fixes)

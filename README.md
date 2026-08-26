@@ -5,7 +5,7 @@
 ![Vite 5.0.12](https://img.shields.io/badge/Vite-5.0.12-646CFF?logo=vite)
 ![Tailwind 3.4.1](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC?logo=tailwind-css)
 ![PWA](https://img.shields.io/badge/PWA-vite--plugin--pwa-5A0FC8?logo=pwa)
-![Release v0.4.2](https://img.shields.io/badge/Release-v0.4.2-blue)
+![Release v0.4.3](https://img.shields.io/badge/Release-v0.4.3-blue)
 ![Node 22.x](https://img.shields.io/badge/Node-22.x-339933?logo=node.js)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions)
@@ -221,6 +221,7 @@ Todas as mudanças seguem [Keep a Changelog](https://keepachangelog.com/pt-BR/1.
 Veja **[CHANGELOG.md](CHANGELOG.md)** para histórico completo.
 
 ### Releases recentes
+- **v0.4.3** — Correções de UX: bug do botão "Limpar" no teclado numérico, detecção mobile automática (hook useIsMobile), teclado customizado apenas em mobile (≤768px), input padrão para desktop com formatação pt-BR
 - **v0.4.2** — Teclado numérico PWA customizado (estilo app bancário), correções de bugs mobile (closure stale, event bubbling, openKeypad), formatação inteligente de moeda
 - **v0.4.1** — Segurança: migração para Cookies HttpOnly + Refresh Token automático, remoção completa de localStorage para autenticação
 - **v0.4.0** — Infraestrutura completa: Docker, Playwright E2E, CI/CD e validação automatizada
