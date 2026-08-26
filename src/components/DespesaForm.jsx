@@ -57,28 +57,31 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
     
     if (key === 'backspace') {
       newValue = displayValue.slice(0, -1);
+      // Se apagar tudo, volta para o estado base
+      if (newValue === '' || newValue === '0' || newValue === '0,') {
+        newValue = '0,00'; 
+      }
     } else if (key === 'clear') {
-      // Qwen fix: Limpar zera para '0,00' em vez de vazio
       newValue = '0,00';
     } else if (key === ',' || key === '.') {
       if (!displayValue.includes(',') && !displayValue.includes('.')) {
-        newValue = displayValue + ',';
+        newValue = displayValue === '0,00' ? '0,' : displayValue + ',';
       }
     } else if (key === 'enter') {
-      // Passa o valor formatado para evitar race condition
       onBlur?.(displayValue);
       onSubmit?.(displayValue);
       setIsUserTyping(false);
       return;
     } else if (/^\d$/.test(key)) {
-      const parts = displayValue.split(',');
-      if (parts.length === 2 && parts[1].length >= 2) {
-        return;
-      }
-      // Se displayValue é '0,00', substitui pelo dígito
+      // 1. PRIORIDADE: Se está em '0,00', substitui pelo dígito (ex: '2')
       if (displayValue === '0,00') {
         newValue = key;
       } else {
+        // 2. Só verifica o limite de casas decimais se NÃO for '0,00'
+        const parts = displayValue.split(',');
+        if (parts.length === 2 && parts[1].length >= 2) {
+          return; // Já tem 2 casas decimais, ignora o toque
+        }
         newValue = displayValue + key;
       }
     }
