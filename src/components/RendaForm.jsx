@@ -4,6 +4,7 @@ import api from '../services/api';
 // ===== TECLADO NUMÉRICO CUSTOMIZADO (ESTILO APP BANCÁRIO) =====
 function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
   const [displayValue, setDisplayValue] = useState(value || '');
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const inputRef = useRef(null);
   const prevValueRef = useRef(value);
 
@@ -24,8 +25,10 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
   // Sincroniza displayValue com value prop APENAS se o valor prop mudou externamente
   // (não sobrescreve se o usuário está digitando)
   useEffect(() => {
+    // SÓ sincroniza se NÃO estiver digitando
+    if (isUserTyping) return;
+    
     const formatted = formatarParaExibicao(value);
-    // Só atualiza se o value prop mudou E o displayValue ainda reflete o valor anterior
     if (value !== prevValueRef.current) {
       const prevFormatted = formatarParaExibicao(prevValueRef.current);
       if (displayValue === prevFormatted || displayValue === '') {
@@ -33,10 +36,12 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
       }
       prevValueRef.current = value;
     }
-  }, [value, displayValue]);
+  }, [value, displayValue, isUserTyping]);
 
   const handleKey = (key) => {
     if (disabled) return;
+    
+    setIsUserTyping(true); // Marca que está digitando
     
     let newValue = displayValue;
     
@@ -53,6 +58,7 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
       // Passa o valor formatado para evitar race condition
       onBlur?.(displayValue);
       onSubmit?.(displayValue);
+      setIsUserTyping(false);
       return;
     } else if (/^\d$/.test(key)) {
       const parts = displayValue.split(',');
@@ -69,6 +75,9 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
     
     setDisplayValue(newValue);
     onChange?.(newValue);
+    
+    // Reseta flag após um delay
+    setTimeout(() => setIsUserTyping(false), 300);
   };
 
   useEffect(() => {
