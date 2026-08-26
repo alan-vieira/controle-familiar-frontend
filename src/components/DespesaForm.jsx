@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import { useIsMobile } from '../utils/useIsMobile';
 
 const CATEGORIAS = ['moradia', 'alimentacao', 'restaurante_lanche', 'casa_utilidades', 'saude', 'transporte', 'lazer_outros'];
 const CATEGORIA_LABELS = {
@@ -268,6 +269,8 @@ function NumericKeypad({ value, onChange, onBlur, onSubmit, disabled }) {
 
 // ===== COMPONENTE PRINCIPAL =====
 export default function DespesaForm({ despesa, onClose, onSuccess }) {
+  const isMobile = useIsMobile();
+  
   const [formData, setFormData] = useState({
     data_compra: '', descricao: '', categoria: 'alimentacao', tipo_pg: 'dinheiro', colaborador_id: '', valor: ''
   });
@@ -414,6 +417,23 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
     );
   }
 
+  // Função para formatar valor no blur (desktop)
+  const handleValorBlur = (e) => {
+    const valor = e.target.value;
+    if (valor) {
+      const num = parseFloat(valor.replace(',', '.'));
+      if (!isNaN(num)) {
+        setFormData(prev => ({
+          ...prev,
+          valor: num.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })
+        }));
+      }
+    }
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -449,15 +469,32 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Valor (R$) *</label>
-              <button
-                type="button"
-                onClick={() => openKeypad('valor', formData.valor)}
-                className="w-full border rounded px-3 py-2 text-right text-lg font-mono bg-gray-50"
-                style={{ textAlign: 'right', fontFamily: 'monospace', fontSize: '1.25rem' }}
-              >
-                {formData.valor || '0,00'}
-              </button>
-              <p className="text-xs text-gray-500 mt-1">Toque para digitar o valor</p>
+              {isMobile ? (
+                // Mobile: botão que abre teclado customizado
+                <button
+                  type="button"
+                  onClick={() => openKeypad('valor', formData.valor)}
+                  className="w-full border rounded px-3 py-2 text-right text-lg font-mono bg-gray-50"
+                  style={{ textAlign: 'right', fontFamily: 'monospace', fontSize: '1.25rem' }}
+                >
+                  {formData.valor || '0,00'}
+                </button>
+              ) : (
+                // Desktop: input numérico padrão
+                <input
+                  type="text"
+                  name="valor"
+                  value={formData.valor || ''}
+                  onChange={handleChange}
+                  onBlur={handleValorBlur}
+                  placeholder="0,00"
+                  className="w-full border rounded px-3 py-2 text-right text-lg font-mono bg-gray-50"
+                  style={{ textAlign: 'right', fontFamily: 'monospace', fontSize: '1.25rem' }}
+                />
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                {isMobile ? 'Toque para digitar o valor' : 'Digite o valor (use vírgula ou ponto)'}
+              </p>
             </div>
             <div className="flex justify-end space-x-3 pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
@@ -469,7 +506,8 @@ export default function DespesaForm({ despesa, onClose, onSuccess }) {
         </div>
       </div>
 
-      {showKeypad && (
+      {/* Mostrar teclado customizado APENAS em mobile */}
+      {showKeypad && isMobile && (
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowKeypad(false)}>
           <div className="bg-gray-900/50 fixed inset-0" onClick={() => setShowKeypad(false)} />
           <NumericKeypad
