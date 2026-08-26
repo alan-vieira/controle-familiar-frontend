@@ -292,12 +292,22 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     }
   };
 
-  const handleKeypadBlur = () => {
+  // Aceita o valor passado pelo keypad (formato BR "26,00") ou usa keypadValue state como fallback
+  const handleKeypadBlur = (passedValue) => {
     if (keypadField) {
-      const digitsOnly = keypadValue;
-      if (digitsOnly) {
-        // Converte dígitos "123456" → número 1234.56 → formato BR "1.234,56"
-        const num = parseInt(digitsOnly, 10) / 100;
+      // O keypad passa o valor formatado (ex: "26,00") via onBlur(displayValue)
+      // Se não veio valor, usa o keypadValue state (formato dígitos "123456")
+      const valueToUse = passedValue || keypadValue;
+      
+      if (valueToUse) {
+        let num;
+        if (valueToUse.includes(',')) {
+          // Valor já está no formato BR "26,00" → converte direto para número
+          num = parseFloat(valueToUse.replace(',', '.'));
+        } else {
+          // Valor em dígitos puros "123456" → divide por 100
+          num = parseInt(valueToUse, 10) / 100;
+        }
         if (!isNaN(num)) {
           setFormData(prev => ({ ...prev, [keypadField]: num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
         }
@@ -307,9 +317,9 @@ export default function RendaForm({ renda, onClose, onSuccess }) {
     setKeypadField(null);
   };
 
-  const handleKeypadSubmit = () => {
+  const handleKeypadSubmit = (passedValue) => {
     if (keypadField) {
-      onBlur?.();
+      handleKeypadBlur(passedValue); // Reutiliza a mesma lógica de blur
     }
     setShowKeypad(false);
     setKeypadField(null);
